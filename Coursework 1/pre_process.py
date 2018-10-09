@@ -2,50 +2,44 @@ import scipy.io
 import numpy as np
 import copy
 import os
+from sklearn.model_selection import train_test_split
 
 DATA_DIR = "data/"
 
 # Load the data and convert it into numpy matrices
-def load_mat(file_path):
+def load_mat(file_path, features = "X", labels = "l"):
     data = scipy.io.loadmat(file_path)
-    X = data["X"]
-    Y = data["l"]
+    X = data[features]
+    Y = data[labels]
     return (X, Y)
 
+# API to load any numpy data
+def load_data(file_path):
+    data = np.load(file_path)
+    return data
+
+# Remove the overall mean from the data
 def remove_mean(data):
     A = np.matrix(data)
     mean = A.mean(axis=1)
     return A - mean
 
-
-def separate_data(data_in, validation=0.1, test=0.1):
-    # Load the target data into two vars
-    X, Y = data_in
-
-    # Append Y to the end of X
-
-    X = remove_mean(X)
-    data = np.vstack([X,Y])
-
-    # Reshuffle the data
-    data = np.take(data,np.random.permutation(data.shape[0]),axis=0,out=data)
-    tseg = int(len(X) * test)
-    vseg = int((len(X) - tseg) * validation)
-
-    # Split the data into test and non-test data
-    i = 0
-    tsplit_start = (i * tseg) % len(data)
-    tsplit_end = (i * tseg + tseg) % len(data)
-    test_data = data[tsplit_start:tsplit_end, :]
-
-    # Split remaining data into training and validation
-    r_data = np.vstack((data[0:tsplit_start, :], data[tsplit_end:, :]))
-    vsplit_start = (i * vseg) % len(r_data)
-    vsplit_end = (i*vseg + vseg)  % len(r_data)
-    validation_data = r_data[vsplit_start:vsplit_end, :]
-    training_data = np.vstack((r_data[0:vsplit_start, :], r_data[vsplit_end:, :]))
-
-    return (training_data, validation_data, test_data)
+# Separate the data into training, validation and test sets
+# Reshuffle the data
+def separate_data(data_in):
+    X,y = data_in
+    # Train size is 80%
+    # Validation size is 10%
+    # Test size is 10%
+    X = X.transpose()
+    y = y.transpose()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+    X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.5, random_state=1)
+    data = [[X_train, y_train], [X_val, y_val], [X_test, y_test]]
+    for d in data:
+        d[0] = d[0].transpose()
+        d[1] = d[1].transpose()
+    return data
 
 def compute_covariance(data):
     return np.cov(data)
@@ -53,32 +47,40 @@ def compute_covariance(data):
 def compute_eigenvalues_eigenvectors(data):
     return np.linalg.eig(data)
 
-
-
 def main():
-    types = ["training", "validation", "test"]
+    # Load the data from the matrix
     X, Y = load_mat(DATA_DIR + "face.mat")
-    training_data, validation_data, test_data = separate_data((X,Y))
+    dataset = separate_data((X,Y))
+
+    # Prepare the containers
+    types = ["training", "validation", "test"]
     S = []
     Eigenvectors = []
     Eigenvalues = []
-    dataset = [training_data, validation_data, test_data]
+
     for data in dataset:
-        print(data.shape)
-        data_without_labels = data[:-1,:]
+        # Remove the last row that represents labels
+        data_without_labels = data[0]
+
+        # Compute the covariance matrix
         cov = compute_covariance(data_without_labels)
-        S.append(cov)
+        # Compute eigenvalues and eigenvectors
         eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
+
+        # Append to the container
         Eigenvectors.append(eigenvectors)
         Eigenvalues.append(eigenvalues)
+        S.append(cov)
     i = 0
+
+    # Save the data so that you do not have to do this over and over again
     for t in types:
         np.save(DATA_DIR +"processed/covariance_matrices/" + "{}.npy".format(t), S[i])
         np.save(DATA_DIR +"processed/eigenvectors/" + "{}.npy".format(t), Eigenvectors[i])
         np.save(DATA_DIR +"processed/eigenvalues/" + "{}.npy".format(t), Eigenvalues[i])
-        np.save(DATA_DIR +"processed/data/" + "{}.npy".format(t),dataset[i][:-1,:])
-        np.save(DATA_DIR +"processed/labels/" + "{}.npy".format(t),dataset[i][-1,:])
-        print(dataset[i][-1,:].shape)
+        np.save(DATA_DIR +"processed/data/" + "{}.npy".format(t),dataset[i][0])
+        np.save(DATA_DIR +"processed/labels/" + "{}.npy".format(t),dataset[i][1])
+        print(S[i].shape)
         i+=1
 
 if __name__ == '__main__':
