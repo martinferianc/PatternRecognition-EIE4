@@ -3,48 +3,64 @@ import numpy as np
 import copy
 import os
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 from numpy.linalg import matrix_power
-import pre_process
+from pre_process import *
+from eigenfaces import *
 
 DATA_DIR = "data/"
 
+def nn_classifier(face, training_faces, training_labels):
+  nn = training_faces[0]
+  label_index = 0
+  min_distance =  np.linalg.norm(face - nn)
+  for i in range(1,len(training_faces)):
+    #get distance between 
+    curr_distance = np.linalg.norm(face - training_faces[i])
+    if curr_distance < min_distance:
+      nn = training_faces[i]
+      min_distance = curr_distance
+      label_index = i
+  return training_labels[label_index]
 
-# function to find best M eigenvalues (step 7)
-# input           : eigenvectors, eigenvalues (N)
-# output          : eigenvectors, eigenvalues (M)
-# hyperparameter  : cutoff
-def best_eigenvectors_cutoff(eigenvalues,eigenvectors,cutoff):
-  #eigenvalues ordered
-  M = len(eigenvalues) 
-  eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 
-  for i in range(len(eigenvalues_pwr)):
-    #find the eigenvalue that's below the cutoff
-    if eigenvalues_pwr[i] < cutoff:
-      M=i
-      break
-  return [eigenvalues[0:M], eigenvectors[0:M]]
+def identity_error(labels, labels_correct):
+  err = 0
+  for i in range(len(labels)):
+    if labels[i] != labels_correct[i]:
+      err += 1
+  #normalise by size of labels
+  return err/len(labels)
 
-def best_eigenvectors_gradient(eigenvalues,eigenvectors,gradient):
-  #eigenvalues ordered
-  M = len(eigenvalues) 
-  eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 
-  for i in range(1,len(eigenvalues_pwr)):
-    #find the gradient below the hyperparameter
-    if abs(eigenvalues_pwr[i] - eigenvalues_pwr[i-1]) < gradient:
-      M=i
-      break
-  return [eigenvalues[0:M], eigenvectors[0:M]]
+#TODO: define cross validation method to tune M
+def tune_M():
+  #get training set
+
+  #split into train and validation
+  
+   
 
 def main():
-  eigenvectors = np.load(DATA_DIR +"processed/eigenvectors/training.npy")
-  eigenvalues  = np.load(DATA_DIR +"processed/eigenvalues/training.npy")
-    
-  #[best_eigenvalues,best_eigenvectors] = best_eigenvectors_cutoff(eigenvalues,eigenvectors,10)
-  [best_eigenvalues,best_eigenvectors] = best_eigenvectors_gradient(eigenvalues,eigenvectors,1000)
+  # Load all the data
+  S, Eigenvectors, Eigenvalues, dataset = load_data()
 
-  print(best_eigenvalues)
-  print(best_eigenvectors)
+  # Select the eigenvectors
+  M_training_Eigenvalues, M_training_Eigenvectors,  = select_M_eigenvectors(50, Eigenvectors[0], Eigenvalues[0],plot=False)
 
+  test_labels   = dataset[1][1].T
+  train_labels  = dataset[0][1].T
+ 
+  test_faces  = dataset[1][0].T
+  train_faces = dataset[0][0].T
+
+  label_results = []
+
+  for i in tqdm(range(len(test_faces))):
+    #project to face space
+    projected_test_face       = project_to_face_space(test_faces[i], M_training_Eigenvectors)
+    projected_training_faces  = [project_to_face_space(train_face, M_training_Eigenvectors) for train_face in train_faces]
+    # get label from nn classifier
+    label_results.append(nn_classifier(projected_test_face, projected_training_faces,train_labels))
+  print('error: ',identity_error(label_results,test_labels))
 
 if __name__ == '__main__':
   main()
