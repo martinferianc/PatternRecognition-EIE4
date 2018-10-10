@@ -3,9 +3,9 @@ from pre_process import load_data
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-def best_eigenvectors_cutoff(eigenvalues,eigenvectors,cutoff):
+def best_eigenvectors_cutoff(eigenvalues,cutoff):
     #eigenvalues ordered
-    M = len(eigenvalues) 
+    M = 1 
     eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 
     for i in range(len(eigenvalues_pwr)):
         #find the eigenvalue that's below the cutoff
@@ -14,7 +14,7 @@ def best_eigenvectors_cutoff(eigenvalues,eigenvectors,cutoff):
             break
     return M
 
-def best_eigenvectors_gradient(eigenvalues,eigenvectors,gradient):
+def best_eigenvectors_gradient(eigenvalues,gradient):
     #eigenvalues ordered
     M = len(eigenvalues) 
     eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 

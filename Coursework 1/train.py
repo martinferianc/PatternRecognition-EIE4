@@ -32,12 +32,39 @@ def identity_error(labels, labels_correct):
   return err/len(labels)
 
 #TODO: define cross validation method to tune M
-def tune_M():
-  #get training set
-
+def tune_cutoff(train_faces, train_labels):
+  #TODO: split validation sets in pre_process (too long here)
   #split into train and validation
+  X_train, X_validation, y_train, y_validation = train_test_split(train_faces, train_labels, test_size=0.2, random_state=42)
+ 
+  #get eigenvalues 
+  cov = compute_covariance(X_train.T)
+  eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
+
+  #initialise
+  cutoff = np.absolute(eigenvalues[0]) 
+  #set max iterations
+  iterations_max = 20
+  learning_rate = 100
+  M = 1  
+  prev_err = 1.0
   
-   
+  for t in range(iterations_max):
+    M = best_eigenvectors_cutoff(eigenvalues,cutoff)
+    M_training_Eigenvalues, M_training_Eigenvectors,  = select_M_eigenvectors(M, eigenvectors, eigenvalues, plot=False)
+  
+    projected_validation_faces = [project_to_face_space(face, M_training_Eigenvectors) for face in X_validation]
+    projected_training_faces   = [project_to_face_space(face, M_training_Eigenvectors) for face in X_train]
+
+    # get validation error 
+    label_results = []
+    for i in tqdm(range(len(projected_validation_faces))):
+      label_results.append(nn_classifier(projected_validation_faces[i], projected_training_faces,y_train))
+    curr_err = identity_error(label_results,y_validation)
+    print('error: ',curr_err,' ,t: ',t)
+    cutoff = cutoff - learning_rate*(prev_err - curr_err)      
+    prev_err = curr_err
+  return M
 
 def main():
   # Load all the data
@@ -52,15 +79,20 @@ def main():
   test_faces  = dataset[1][0].T
   train_faces = dataset[0][0].T
 
+  tune_cutoff(train_faces,train_labels)
+  
+  '''
+  
   label_results = []
 
+  projected_training_faces  = [project_to_face_space(train_face, M_training_Eigenvectors) for train_face in train_faces]
   for i in tqdm(range(len(test_faces))):
     #project to face space
     projected_test_face       = project_to_face_space(test_faces[i], M_training_Eigenvectors)
-    projected_training_faces  = [project_to_face_space(train_face, M_training_Eigenvectors) for train_face in train_faces]
     # get label from nn classifier
     label_results.append(nn_classifier(projected_test_face, projected_training_faces,train_labels))
   print('error: ',identity_error(label_results,test_labels))
+  '''
 
 if __name__ == '__main__':
   main()
