@@ -14,14 +14,14 @@ def select_M_eigenvectors(M, eigenvectors, eigenvalues):
 
 # Do the projection through the eigenvectors
 def project_to_face_space(face, eigenvectors):
-    return np.matmul(eigenvectors.transpose(), face)
+    return np.matmul(face.T, eigenvectors)
 
 def main():
     # Load all the data
     S, Eigenvectors, Eigenvalues, dataset = load_data()
 
     # Select the eigenvectors
-    M_training_Eigenvalues, M_training_Eigenvectors,  = select_M_eigenvectors(5, Eigenvectors[0], Eigenvalues[0])
+    M_training_Eigenvalues, M_training_Eigenvectors,  = select_M_eigenvectors(200, Eigenvectors[0], Eigenvalues[0])
 
     # # TODO: This can be optimized with a for loop to find the best M in terms of time
     # memory and accuracy
@@ -34,6 +34,12 @@ def main():
 
     # Iterate over all the test images
     index_test = 0
+
+    # Project all the training faces into the face space and cache them
+    projected_training_faces = []
+    for training_face in dataset[0][0].T:
+        # Get the projection of the training image into the face space
+        projected_training_faces.append(project_to_face_space(training_face, M_training_Eigenvectors))
 
     # Do this for every test face
     for test_face in tqdm(dataset[1][0].T):
@@ -48,9 +54,7 @@ def main():
         # and for the best neighbout
         index_train = 0
         index = 0
-        for training_face in dataset[0][0].T:
-            # Get the projection of the training image into the face space
-            projected_training_face = project_to_face_space(training_face, M_training_Eigenvectors)
+        for projected_training_face in projected_training_faces:
 
             # Calculate the Euclidian distance
             distance = np.linalg.norm(projected_test_face - projected_training_face)
