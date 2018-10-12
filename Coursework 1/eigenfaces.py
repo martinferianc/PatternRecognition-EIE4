@@ -8,6 +8,13 @@ class EigenFace:
   def __init__(self):
     # Load pre processed data
     _, Eigenvectors, Eigenvalues, dataset = load_data()
+
+    #Eigenvectors = np.array(Eigenvectors)
+    #Eigenvalues = np.array(Eigenvalues)
+
+    print(Eigenvectors[0].shape)
+    print(Eigenvalues[0].shape)
+    print(dataset[0][0].shape)
     
     # faces from dataset 
     self.test_faces  = dataset[1][0].T
@@ -18,9 +25,9 @@ class EigenFace:
     self.train_labels = dataset[0][1].T
     
     # order and store initial eigenvalues and eigenvectors from training data
-    ind = Eigenvalues.argsort()
-    self.train_eigenvalues  = Eigenvalues[ind] 
-    self.train_eigenvectors = Eigenvectors[ind]
+    ind = Eigenvalues[0].argsort()
+    self.train_eigenvalues  = Eigenvalues[0][ind] 
+    self.train_eigenvectors = Eigenvectors[0][ind]
 
     # temporary variable for number of eigenvectors
     self.M = 200
@@ -49,7 +56,7 @@ class EigenFace:
         break
     # set M and m_train_eigenvalues
     self.M = M
-    self.select_M_eigenvectors(M, plot=False):
+    self.select_M_eigenvectors(M, plot=False)
     return M
 
   def best_eigenvectors_gradient(self,eigenvalues,gradient):
@@ -77,10 +84,13 @@ class EigenFace:
     return training_labels[label_index]
 
   # Soert and select the M largest eigenvalues and eigenvectors
-  def select_M_eigenvectors(self, M, eigenvectors, eigenvalues,plot=True):
+  def select_M_eigenvectors(self, M,plot=True):
     if plot:
       plt.plot(eigenvalues)
       plt.show()
+    print(self.train_eigenvalues.shape)
+    print(self.train_eigenvectors.shape)
+
     self.m_train_eigenvalues  = self.train_eigenvalues[-M:]
     self.m_train_eigenvectors = self.train_eigenvectors[:,-M:]
 
@@ -88,64 +98,36 @@ class EigenFace:
   def project_to_face_space(self, face):
     return np.matmul(face.T, self.m_train_eigenvectors)
 
+  def project_all_to_face_space(self):
+    self.train_facespace = [self.project_to_face_space(face) for face in self.train_faces]
+    self.projected_test_faces = [self.project_to_face_space(face) for face in self.test_faces]
+    return
+
+  def identity_error(labels, labels_correct):
+    err = 0
+    for i in range(len(labels)):
+      if labels[i] != labels_correct[i]:
+        err += 1
+    #normalise by size of labels
+    return err/len(labels)
+
+
   def run_nn_classifier(self):
-    pass
+    # empty array to hold label results
+    label_results = []
 
-def main():
-    # Load all the data
-    S, Eigenvectors, Eigenvalues, dataset = load_data()
+    # select M eigenvectors
+    self.select_M_eigenvectors(self.M, plot=False)
 
-    # Select the eigenvectors
-    M_training_Eigenvalues, M_training_Eigenvectors,  = select_M_eigenvectors(200, Eigenvectors[0], Eigenvalues[0])
-
-    # # TODO: This can be optimized with a for loop to find the best M in terms of time
-    # memory and accuracy
-    # Initialize the error to 0
-    error = 0
-    test_results = []
-
-    test_labels = dataset[1][1].T
-    train_labels = dataset[0][1].T
-
-    # Iterate over all the test images
-    index_test = 0
-
-    # Project all the training faces into the face space and cache them
-    projected_training_faces = []
-    for training_face in dataset[0][0].T:
-        # Get the projection of the training image into the face space
-        projected_training_faces.append(project_to_face_space(training_face, M_training_Eigenvectors))
-
-    # Do this for every test face
-    for test_face in tqdm(dataset[1][0].T):
-
-        # Get the projection into the face space
-        projected_test_face = project_to_face_space(test_face, M_training_Eigenvectors)
-
-        # Initialize the euclidian distance as infinity
-        max_distance = float("inf")
-
-        # Remember the indices for the training images
-        # and for the best neighbout
-        index_train = 0
-        index = 0
-        for projected_training_face in projected_training_faces:
-
-            # Calculate the Euclidian distance
-            distance = np.linalg.norm(projected_test_face - projected_training_face)
-
-            # If the distance is smaller remember it
-            if distance < max_distance:
-                max_distance = distance
-                index = index_train
-            index_train+=1
-
-        test_results.append(train_labels[index])
-        if test_labels[index_test]!=train_labels[index]:
-            error+=1
-        index_test+=1
-    print("Error {}".format(error/len(test_labels)))
-
-
+    # project to facespace
+    self.project_all_to_face_space()
+    
+    # run nn classifier for every project test face
+    for face in tqdm(self.projected_test_faces):
+      # get label from nn classifier
+      label_results.append(self.nn_classifier(self.test_face, self.projected_facespace,self.train_labels))
+    print('error: ',self.identity_error(label_results,self.test_labels))
+ 
 if __name__ == '__main__':
-    main()
+  t = EigenFace()
+  t.run_nn_classifier()
