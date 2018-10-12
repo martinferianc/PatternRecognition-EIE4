@@ -8,7 +8,7 @@ import os
 import matplotlib.pyplot as plt
 
 DATA_DIR = "data/"
-COMPUTE_DIRECTLY = True
+COMPUTE_DIRECTLY = False 
 
 def load_mat(file_path, features = "X", labels = "l"):
     """
@@ -201,6 +201,7 @@ def preprocess():
             # Compute the covariance matrix
             cov = compute_covariance(face_matrix)
 
+        print(cov.shape)
         # Compute eigenvalues and eigenvectors
         eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
 

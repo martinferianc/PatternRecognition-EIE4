@@ -70,18 +70,18 @@ class EigenFace:
         break
     return M 
 
-  def nn_classifier(self, face, train_facespace, train_labels):
-    nn = train_facespace[0]
+  def nn_classifier(self, face):
+    nn = self.train_facespace[0]
     label_index = 0
     min_distance =  np.linalg.norm(face - nn)
-    for i in range(1,len(train_facespace)):
+    for i in range(1,len(self.train_facespace)):
       #get distance between 
-      curr_distance = np.linalg.norm(face - train_facespace[i])
+      curr_distance = np.linalg.norm(face - self.train_facespace[i])
       if curr_distance < min_distance:
-        nn = train_facespace[i]
+        nn = self.train_facespace[i]
         min_distance = curr_distance
         label_index = i
-    return training_labels[label_index]
+    return self.train_labels[label_index]
 
   # Soert and select the M largest eigenvalues and eigenvectors
   def select_M_eigenvectors(self, M,plot=True):
@@ -103,7 +103,7 @@ class EigenFace:
     self.projected_test_faces = [self.project_to_face_space(face) for face in self.test_faces]
     return
 
-  def identity_error(labels, labels_correct):
+  def identity_error(self, labels, labels_correct):
     err = 0
     for i in range(len(labels)):
       if labels[i] != labels_correct[i]:
@@ -125,7 +125,7 @@ class EigenFace:
     # run nn classifier for every project test face
     for face in tqdm(self.projected_test_faces):
       # get label from nn classifier
-      label_results.append(self.nn_classifier(self.test_face, self.projected_facespace,self.train_labels))
+      label_results.append(self.nn_classifier(face))
     print('error: ',self.identity_error(label_results,self.test_labels))
  
 if __name__ == '__main__':
