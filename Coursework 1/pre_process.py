@@ -6,9 +6,10 @@ import numpy as np
 import os
 # For plotting
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 DATA_DIR = "data/"
-COMPUTE_DIRECTLY = True
+COMPUTE_DIRECTLY = False 
 
 def load_mat(file_path, features = "X", labels = "l"):
     """
@@ -194,6 +195,7 @@ def preprocess():
             # Compute the covariance matrix
             cov = compute_covariance(face_matrix)
 
+        print(cov.shape)
         # Compute eigenvalues and eigenvectors
         eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
 
