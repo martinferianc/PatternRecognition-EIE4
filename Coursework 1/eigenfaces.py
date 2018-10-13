@@ -16,18 +16,18 @@ class EigenFace:
     print(Eigenvectors[0].shape)
     print(Eigenvalues[0].shape)
     print(dataset[0][0].shape)
-    
-    # faces from dataset 
+
+    # faces from dataset
     self.test_faces  = dataset[1][0].T
     self.train_faces = dataset[0][0].T
-   
+
     # labels from dataset
     self.test_labels  = dataset[1][1].T
     self.train_labels = dataset[0][1].T
-    
+
     # order and store initial eigenvalues and eigenvectors from training data
     ind = Eigenvalues[0].argsort()
-    self.train_eigenvalues  = Eigenvalues[0][ind] 
+    self.train_eigenvalues  = Eigenvalues[0][ind]
     self.train_eigenvectors = Eigenvectors[0][ind]
 
     # temporary variable for number of eigenvectors
@@ -39,7 +39,7 @@ class EigenFace:
 
     # training faces projected by selected eigenvalues
     self.train_facespace = []
-    
+
     # test faces projected by selected eigenvalues
     self.projected_test_faces = []
 
@@ -48,8 +48,8 @@ class EigenFace:
   # return: number of eigenvectors
   def best_eigenvectors_cutoff(self,eigenvalues,cutoff):
     #eigenvalues ordered
-    M = 1 
-    eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 
+    M = 1
+    eigenvalues_pwr = np.square(np.absolute(eigenvalues))
     for i in range(len(eigenvalues_pwr)):
       #find the eigenvalue that's below the cutoff
       if eigenvalues_pwr[i] < cutoff:
@@ -59,14 +59,14 @@ class EigenFace:
 
   def best_eigenvectors_gradient(self,eigenvalues,gradient):
     #eigenvalues ordered
-    M = len(eigenvalues) 
-    eigenvalues_pwr = np.square(np.absolute(eigenvalues)) 
+    M = len(eigenvalues)
+    eigenvalues_pwr = np.square(np.absolute(eigenvalues))
     for i in range(1,len(eigenvalues_pwr)):
       #find the gradient below the hyperparameter
       if abs(eigenvalues_pwr[i] - eigenvalues_pwr[i-1]) < gradient:
         M=i
         break
-    return M 
+    return M
 
   def tune_cutoff(self):
     data = train_test_split(self.train_faces, self.train_labels, test_size=0.1, random_state=42)
@@ -91,24 +91,24 @@ class EigenFace:
     print('cutoff',cutoff)
     iterations_max = 20
     learning_rate = 5000000
-    M = 1  
+    M = 1
     prev_err = 0.0
-  
+
     for t in range(iterations_max):
       M = self.best_eigenvectors_cutoff(eigenvalues,cutoff)
       print('M: ', M)
       M_training_Eigenvectors = self.select_M_eigenvectors(M, eigenvectors, plot=False)
-  
+
       projected_validation_faces = [self.project_to_face_space(face, M_training_Eigenvectors) for face in validation_faces]
       projected_training_faces   = [self.project_to_face_space(face, M_training_Eigenvectors) for face in train_faces]
 
-      # get validation error 
+      # get validation error
       label_results = []
       for i in tqdm(range(len(projected_validation_faces))):
         label_results.append(self.nn_classifier(projected_validation_faces[i], projected_training_faces,train_labels))
       curr_err = self.identity_error(label_results,validation_labels)
       print('error: ',curr_err,' ,t: ',t)
-      cutoff = cutoff - learning_rate*(prev_err - curr_err)      
+      cutoff = cutoff - learning_rate*(prev_err - curr_err)
       print('cutoff',cutoff)
       prev_err = curr_err
     self.M = M
@@ -123,7 +123,7 @@ class EigenFace:
     label_index = 0
     min_distance =  np.linalg.norm(face - nn)
     for i in range(1,len(facespace)):
-      #get distance between 
+      #get distance between
       curr_distance = np.linalg.norm(face - facespace[i])
       if curr_distance < min_distance:
         nn = facespace[i]
@@ -137,15 +137,15 @@ class EigenFace:
       plt.plot(eigenvalues)
       plt.show()
 
-    if eigenvectors.any():
-      return eigenvectors[:,-M:] 
+    if eigenvectors is not None:
+      return eigenvectors[:,-M:]
     else:
       self.m_train_eigenvalues  = self.train_eigenvalues[-M:]
       self.m_train_eigenvectors = self.train_eigenvectors[:,-M:]
 
   # Do the projection through the eigenvectors
   def project_to_face_space(self, face, eigenvectors=None):
-    if eigenvectors.any():
+    if eigenvectors is not None:
       return np.matmul(face.T, eigenvectors)
     else:
       return np.matmul(face.T, self.m_train_eigenvectors)
@@ -175,13 +175,13 @@ class EigenFace:
 
     # project to facespace
     self.project_all_to_face_space()
-    
+
     # run nn classifier for every project test face
     for face in tqdm(self.projected_test_faces):
       # get label from nn classifier
       label_results.append(self.nn_classifier(face))
     print('error: ',self.identity_error(label_results,self.test_labels))
- 
+
 if __name__ == '__main__':
   t = EigenFace()
   t.run_nn_classifier()
