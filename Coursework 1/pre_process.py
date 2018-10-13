@@ -176,12 +176,6 @@ def preprocess():
     # Remove the same mean from the test dataset
     dataset[1][0] = remove_mean(dataset[1][0], mean)
 
-    # Display the mean face for verification
-    mean = mean.reshape((46,56))
-    mean = np.rot90(mean,3)
-    plt.imshow(mean, cmap="gray")
-    plt.show()
-
     # Prepare the containers
     types = ["training", "test"]
     S = []
@@ -196,13 +190,15 @@ def preprocess():
         if COMPUTE_DIRECTLY:
             D,N = face_matrix.shape
             cov = (1/N) * np.dot(face_matrix.T, face_matrix)
-            print(cov.shape)
         else:
             # Compute the covariance matrix
             cov = compute_covariance(face_matrix)
 
         # Compute eigenvalues and eigenvectors
         eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
+
+        if COMPUTE_DIRECTLY:
+            eigenvalues = np.dot(face_matrix, eigenvectors)
 
         # Append to the container
         Eigenvectors.append(eigenvectors)
