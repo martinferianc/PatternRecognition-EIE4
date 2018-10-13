@@ -9,7 +9,14 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 DATA_DIR = "data/"
-COMPUTE_DIRECTLY = False 
+COMPUTE_DIRECTLY = False
+
+def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
+    p = np.argsort(np.abs(eigenvalues))[::-1]
+    eigenvalues = eigenvalues[p]
+    eigenvectors = eigenvectors[:,p]
+    return eigenvalues, eigenvectors
+
 
 def load_mat(file_path, features = "X", labels = "l"):
     """
@@ -56,7 +63,7 @@ def remove_mean(data, mean = None):
     """
     A = np.matrix(data)
     if mean is None:
-        mean = A.mean(axis=1)
+        mean = A.mean(axis=1).reshape(-1, 1)
         return A - mean, mean
     else:
         return A - mean
@@ -79,6 +86,8 @@ def separate_data(data, train = 0.8):
     mean: numpy array
     """
     X,y = data
+
+    np.random.seed(13)
 
     D, N = X.shape
 
