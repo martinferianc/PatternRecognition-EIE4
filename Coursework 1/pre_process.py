@@ -6,6 +6,7 @@ import numpy as np
 import os
 # For plotting
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 DATA_DIR = "data/"
 COMPUTE_DIRECTLY = False 
