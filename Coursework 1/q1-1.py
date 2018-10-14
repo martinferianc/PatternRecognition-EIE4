@@ -21,7 +21,7 @@ def non_zero(eigenvalues,lim=0.001):
     return count
 
 def compare(a1, a2, lim=0.001):
-    N = len(a1) if len(a1) < len(a2) else a2
+    N = a1.shape[0] if a1.shape[0] < a2.shape[0] else a2.shape[0]
     for i in range(N):
         if np.abs(a1[i]-a2[i])>lim:
             return False
@@ -69,9 +69,8 @@ def main():
     end = time.time()
     print("Calculated eigenvectors, eigenvalues inefficiently, took: {} s".format(end-start))
 
-    norm = np.linalg.norm(A,axis=0)
-    _u_efficient = copy.deepcopy(np.matmul(A/norm,_u_efficient))
-    #_u_efficient = copy.deepcopy(np.dot(A, copy.deepcopy(_u_efficient)))
+    _u_efficient = copy.deepcopy(np.matmul(A,_u_efficient))
+    _u_efficient = _u_efficient / np.linalg.norm(_u_efficient,axis=0)
     indexes = np.argsort(np.abs(_l_naive))[::-1]
     u_naive = np.real(_u_naive[:, indexes])
     l_naive = _l_naive[indexes]
@@ -86,6 +85,9 @@ def main():
     print("Non-zero eigenvalues efficiently {}".format(non_zero(l_efficient)))
 
     print("Are eigenvalues for both the same? {}".format(compare(l_efficient, l_naive)))
+    for i in range(u_efficient.shape[1]):
+        print(u_efficient[:,i], u_naive[:,i])
+        print("Are eigenvectors for both the same? {}".format(compare(u_efficient[:,i], u_naive[:,i])))
 
     l_naive_sum = np.sum(l_naive)
     k = [0] * N
