@@ -7,15 +7,16 @@ import os
 # For plotting
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import copy
 
 DATA_DIR = "data/"
 COMPUTE_DIRECTLY = False
 
 def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
     p = np.argsort(np.abs(eigenvalues))[::-1]
-    eigenvalues = eigenvalues[p]
-    eigenvectors = eigenvectors[:,p]
-    return eigenvalues, eigenvectors
+    eigenvalues_ = copy.deepcopy(eigenvalues[p])
+    eigenvectors_ = copy.deepcopy(np.real(eigenvectors[:,p]))
+    return eigenvalues_, eigenvectors_
 
 
 def load_mat(file_path, features = "X", labels = "l"):
@@ -210,6 +211,9 @@ def preprocess():
 
         if COMPUTE_DIRECTLY:
             eigenvalues = np.dot(face_matrix, eigenvectors)
+
+        # Sort eigenvalues and eigenvectors
+        eigenvalues, eigenvectors = sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors)
 
         # Append to the container
         Eigenvectors.append(eigenvectors)
