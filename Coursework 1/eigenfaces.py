@@ -60,8 +60,10 @@ class EigenFace:
     return np.matmul(face.T, self.m_eigenvectors)
 
   def project_all_to_face_space(self):
-    self.train_facespace = [self.project_to_face_space(copy.deepcopy(face.T)) for face in self.train_faces.T]
-    self.projected_test_faces = [self.project_to_face_space(copy.deepcopy(face.T)) for face in self.test_faces.T]
+    #self.train_facespace = [self.project_to_face_space(copy.deepcopy(face.T)) for face in self.train_faces.T]
+    self.train_facespace = self.project_to_face_space(self.train_faces)
+    #self.projected_test_faces = np.array([self.project_to_face_space(copy.deepcopy(face.T)) for face in self.test_faces.T])
+    self.projected_test_faces = self.project_to_face_space(self.test_faces)
     return
 
   def plot_img(self,img):
@@ -82,8 +84,7 @@ class EigenFace:
   def mse_error(self, img, img_correct):
     return ((img - img_correct) ** 2).mean(axis=0)
 
-  def reconstruction(self,face):
-    projected_face = self.project_to_face_space(face)
+  def reconstruction(self,projected_face):
     reconstructed_face = copy.deepcopy(self.mean)
     for i in range(len(projected_face)):
       reconstructed_face += projected_face[i] * self.m_eigenvectors[:,[i]]
@@ -95,8 +96,12 @@ class EigenFace:
     # select M eigenvectors
     self.select_M_eigenvectors(self.M, plot=False)
 
-    for face in self.train_faces.T:
-      reconstructed_face = self.reconstruction(face.T)
+    # project to facespace
+    self.project_all_to_face_space()
+
+    # run nn classifier for every project test face
+    for face in tqdm(self.projected_test_faces):
+      reconstructed_face = self.reconstruction(face)
       err_results.append(self.mse_error(face.T,reconstructed_face))
     print('error: ',np.mean(err_results))
     return np.mean(err_results)
