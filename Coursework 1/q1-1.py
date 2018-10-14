@@ -69,8 +69,9 @@ def main():
     end = time.time()
     print("Calculated eigenvectors, eigenvalues inefficiently, took: {} s".format(end-start))
 
-
-    _u_efficient = copy.deepcopy(np.dot(A, copy.deepcopy(_u_efficient)))
+    norm = np.linalg.norm(A,axis=0)
+    _u_efficient = copy.deepcopy(np.matmul(A/norm,_u_efficient))
+    #_u_efficient = copy.deepcopy(np.dot(A, copy.deepcopy(_u_efficient)))
     indexes = np.argsort(np.abs(_l_naive))[::-1]
     u_naive = np.real(_u_naive[:, indexes])
     l_naive = _l_naive[indexes]

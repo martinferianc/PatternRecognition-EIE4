@@ -21,7 +21,7 @@ def main():
     train_faces = dataset[0][0]
     D, N = train_faces.shape
 
-    #'''
+    '''
     # Naive Eigenvectors
     S_naive = copy.deepcopy((1 / N) * np.dot(train_faces, train_faces.T))
     _l_naive,_u_naive = np.linalg.eig(S_naive)
@@ -45,15 +45,22 @@ def main():
     # Efficient Eigenvectors
     S_efficient = copy.deepcopy((1/N) * np.dot(train_faces.T, train_faces))
     _l_efficient,_u_efficient = np.linalg.eig(S_efficient)
-    _u_efficient = copy.deepcopy(np.dot(train_faces, copy.deepcopy(_u_efficient)))
+    norm = np.linalg.norm(train_faces,axis=0)
+    _u_efficient = copy.deepcopy(np.matmul(train_faces/norm,_u_efficient))
     u_efficient = np.real(_u_efficient)
     l_efficient = _l_efficient
 
     efficient_eigenvectors = u_efficient
 
     efficient = EigenFace(dataset,efficient_eigenvectors,mean)
-    efficient.run_reconstruction()
-    '''
+    M = [5,50,100,200,250]
+    err = []
+    for m in M:
+        efficient.M = m
+        err.append(efficient.run_reconstruction())
+    plt.scatter(M,err)
+    plt.show()
+    #'''
 
 if __name__ == '__main__':
     main()
