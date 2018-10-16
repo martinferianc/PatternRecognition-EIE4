@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import copy
 
 DATA_DIR = "data/"
-COMPUTE_DIRECTLY = False
+EFFICIENT = True 
 
 def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
     p = np.argsort(np.abs(eigenvalues))[::-1]
@@ -195,22 +195,26 @@ def preprocess():
 
     for data in dataset:
         # Remove the last row that represents labels
-        face_matrix = data[0]
+        face_matrix = copy.deepcopy(data[0])
 
         cov = None
-        if COMPUTE_DIRECTLY:
+        eigenvalues  = None
+        eigenvectors = None
+        if EFFICIENT:
+            # Obtain covariance matrix from transform
             D,N = face_matrix.shape
-            cov = (1/N) * np.dot(face_matrix.T, face_matrix)
+            A = copy.deepcopy(face_matrix)
+            cov = (1/N) * np.dot(A.T, A)
+            # Compute Eigenvalues and Eigenvectors
+            eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
+            # Transform Eigenvectors to the Face plane
+            eigenvectors = copy.deepcopy(np.matmul(A,eigenvectors))
+            # Normalise Eigenvectors
+            eigenvectors = eigenvectors / np.linalg.norm(eigenvectors,axis=0)
         else:
-            # Compute the covariance matrix
-            cov = compute_covariance(face_matrix)
-
-        print(cov.shape)
-        # Compute eigenvalues and eigenvectors
-        eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
-
-        if COMPUTE_DIRECTLY:
-            eigenvalues = np.dot(face_matrix, eigenvectors)
+            A = copy.deepcopy(face_matrix)
+            cov = compute_covariance(A)
+            eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
 
         # Sort eigenvalues and eigenvectors
         eigenvalues, eigenvectors = sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors)
@@ -229,7 +233,8 @@ def preprocess():
         np.save(DATA_DIR +"processed/data/" + "{}.npy".format(t),dataset[i][0])
         np.save(DATA_DIR +"processed/labels/" + "{}.npy".format(t),dataset[i][1])
         i+=1
-    return S, Eigenvectors, Eigenvalues, dataset
+    np.save(DATA_DIR+"processed/mean.npy",mean)
+    return mean, Eigenvectors, Eigenvalues, dataset
 
 def load_data():
     """
@@ -266,7 +271,8 @@ def load_data():
         X = np.load(DATA_DIR +"processed/data/" + "{}.npy".format(t))
         Y = np.load(DATA_DIR +"processed/labels/" + "{}.npy".format(t))
         dataset.append([X,Y])
-    return S, Eigenvectors, Eigenvalues, dataset
+    mean = np.load(DATA_DIR+"processed/mean.npy")
+    return mean, Eigenvectors, Eigenvalues, dataset
 
 if __name__ == '__main__':
     preprocess()

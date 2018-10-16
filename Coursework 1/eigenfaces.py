@@ -33,6 +33,7 @@ class EigenFace:
     self.train_facespace = []
 
     # test faces projected by selected eigenvalues
+    self.projected_train_faces = []
     self.projected_test_faces = []
 
   def nn_classifier(self, face):
@@ -57,13 +58,14 @@ class EigenFace:
 
   # Do the projection through the eigenvectors
   def project_to_face_space(self, face):
-    return np.matmul(face.T, self.m_eigenvectors)
+    return np.dot(face.T, self.m_eigenvectors)
 
   def project_all_to_face_space(self):
     #self.train_facespace = [self.project_to_face_space(copy.deepcopy(face.T)) for face in self.train_faces.T]
     self.train_facespace = self.project_to_face_space(self.train_faces)
     #self.projected_test_faces = np.array([self.project_to_face_space(copy.deepcopy(face.T)) for face in self.test_faces.T])
-    self.projected_test_faces = self.project_to_face_space(self.test_faces)
+    self.projected_test_faces  = self.project_to_face_space(self.test_faces)
+    self.projected_train_faces = self.project_to_face_space(self.train_faces)
     return
 
   def plot_img(self,img):
@@ -86,9 +88,9 @@ class EigenFace:
 
   def reconstruction(self,projected_face):
     reconstructed_face = copy.deepcopy(self.mean)
-    for i in range(len(projected_face)):
-      reconstructed_face += projected_face[i] * self.m_eigenvectors[:,[i]]
-    return reconstructed_face
+    for i in range(projected_face.shape[1]):
+      reconstructed_face += copy.deepcopy(projected_face[0,i]) * copy.deepcopy(self.m_eigenvectors[:,[i]])
+    return copy.deepcopy(reconstructed_face)
 
   def run_reconstruction(self):
     err_results = []
@@ -100,9 +102,9 @@ class EigenFace:
     self.project_all_to_face_space()
 
     # run nn classifier for every project test face
-    for face in tqdm(self.projected_test_faces):
-      reconstructed_face = self.reconstruction(face)
-      err_results.append(self.mse_error(face.T,reconstructed_face))
+    for i in tqdm(range(self.projected_train_faces.shape[0])):
+      reconstructed_face = self.reconstruction(self.projected_train_faces[[i],:])
+      err_results.append(self.mse_error(self.train_faces[:,[i]],reconstructed_face))
     print('error: ',np.mean(err_results))
     return np.mean(err_results)
 
