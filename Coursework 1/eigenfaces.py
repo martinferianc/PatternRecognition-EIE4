@@ -17,8 +17,8 @@ class EigenFace:
     self.train_faces = dataset[0][0]
 
     # labels from dataset
-    self.test_labels  = dataset[1][1]
-    self.train_labels = dataset[0][1]
+    self.test_labels  = dataset[1][1].T
+    self.train_labels = dataset[0][1].T
 
     # order and store initial eigenvalues and eigenvectors from training data
     self.eigenvectors = eigenvectors
@@ -40,7 +40,7 @@ class EigenFace:
     nn = copy.deepcopy(self.train_facespace[0])
     label_index = 0
     min_distance =  np.linalg.norm(face - nn)
-    for i in range(1,len(self.train_facespace)):
+    for i in range(1,self.train_facespace.shape[0]):
       #get distance between
       curr_distance = np.linalg.norm(face - self.train_facespace[i])
       if curr_distance < min_distance:

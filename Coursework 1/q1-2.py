@@ -83,7 +83,7 @@ def main():
         print(m)
         eigenface.M = m
         start = time.time()
-        err.append(eigenface.run_reconstruction())
+        err.append(eigenface.run_nn_classifier())
         end = time.time()
         run_time.append(end-start)
 
