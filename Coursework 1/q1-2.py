@@ -14,6 +14,7 @@ def main():
 
     # Initialise EigenFace Class
     eigenface = EigenFace(dataset,eigenvectors[0],mean)
+    eigenface.run_reconstruction_classifier()
 
     M = np.arange(50,400,10)
 

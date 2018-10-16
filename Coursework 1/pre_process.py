@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import copy
 
 DATA_DIR = "data/"
-EFFICIENT = True 
+EFFICIENT = True
 
 def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
     p = np.argsort(np.abs(eigenvalues))[::-1]
@@ -150,6 +150,20 @@ def compute_eigenvalues_eigenvectors(data):
     eigenvectors: numpy matrix
     """
     return np.linalg.eig(data)
+
+def compute_eigenspace(data):
+    # Obtain covariance matrix from transform
+    D,N = data.shape
+    cov = (1/N) * np.dot(data.T, data)
+    # Compute Eigenvalues and Eigenvectors
+    eigenvalues, eigenvectors = compute_eigenvalues_eigenvectors(cov)
+    # Transform Eigenvectors to the Face plane
+    eigenvectors = copy.deepcopy(np.matmul(data,eigenvectors))
+    # Normalise Eigenvectors
+    eigenvectors = eigenvectors / np.linalg.norm(eigenvectors,axis=0)
+
+    # Sort eigenvalues and eigenvectors
+    return sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors)
 
 
 def preprocess():
