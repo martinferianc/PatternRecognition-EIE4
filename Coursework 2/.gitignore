@@ -1,0 +1,4 @@
+data/*.npy
+data/*.mat
+data/raw/*.json
+data/raw/images_cuhk03/*
