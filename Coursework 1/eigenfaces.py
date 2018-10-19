@@ -84,7 +84,12 @@ class EigenFace:
         return err/len(labels)
 
     def mse_error(self, img, img_correct):
-        return ((img - img_correct) ** 2).mean(axis=0)
+        err = 0
+        print
+        for i in range(img.shape[0]):
+            err += (img[i,0] - img_correct[i,0])**2
+        #return ((img - img_correct) ** 2).mean()
+        return err/img.shape[0]
 
     def reconstruction(self,projected_face):
         reconstructed_face = copy.deepcopy(self.mean)
@@ -103,10 +108,10 @@ class EigenFace:
 
         # run nn classifier for every project test face
         for i in tqdm(range(self.projected_train_faces.shape[0])):
-            reconstructed_face = self.reconstruction(self.projected_train_faces[[i],:])
-            err_results.append(self.mse_error(self.train_faces[:,[i]],reconstructed_face))
-        print('error: ',np.mean(err_results))
-        return np.mean(err_results)
+            reconstructed_face = copy.deepcopy(self.reconstruction(self.projected_train_faces[[i],:]))
+            err_results.append(self.mse_error(self.train_faces[:,[i]]+self.mean,reconstructed_face))
+        print('error: ',np.mean(err_results)/self.projected_train_faces.shape[0])
+        return np.mean(err_results)/self.projected_train_faces.shape[0]
 
     def run_nn_classifier(self):
         # empty array to hold label results
@@ -135,25 +140,31 @@ class EigenFace:
             else:
                 class_space[self.train_labels[i][0]] = np.hstack((class_space[self.train_labels[i][0]],self.train_faces[:,[i]]))
         # Compute eigenvectors for each class space
-        for a in class_space:
+        for a in tqdm(class_space):
             _,class_space[a] = compute_eigenspace(class_space[a])
 
+        label_results = []
         # Perform reconstruction for each class space and evaluate error
-        for face in (self.test_faces.T):
+        for i in tqdm(range(self.test_faces.shape[1])):
             err_min = float('inf')
             label = 0
             # Project across each class and evaluate error
             for a in class_space:
-                projected_face = copy.deepcopy(np.dot(face, class_space[a]))
+                projected_face = copy.deepcopy(np.matmul(self.test_faces[:,[i]].T, class_space[a]))
                 reconstructed_face = copy.deepcopy(self.mean)
-                for i in range(projected_face.shape[0]):
-                    reconstructed_face += copy.deepcopy(projected_face[i]) * copy.deepcopy(class_space[a][:,[i]])
-                err = self.mse_error(face.T,reconstructed_face.T) # TODO: make sure it only returns single value
-                print(err)
+                for i in range(projected_face.shape[1]):
+                    reconstructed_face += copy.deepcopy(projected_face[0,i]) * copy.deepcopy(class_space[a][:,[i]])
+                err = self.mse_error(self.test_faces[:,[i]],reconstructed_face) # TODO: make sure it only returns single value
                 if err < err_min:
                     label = a
                     err_min = err
 
+            label_results.append(label)
+
+        print(label_results)
+        err = self.identity_error(label_results,self.test_labels)
+        print('error: ',err)
+        return err
 
 if __name__ == '__main__':
   t = EigenFace()
