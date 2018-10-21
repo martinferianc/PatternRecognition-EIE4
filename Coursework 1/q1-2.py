@@ -14,17 +14,12 @@ def main():
 
     # Initialise EigenFace Class
     eigenface = EigenFace(copy.deepcopy(dataset),copy.deepcopy(eigenvectors[0]),mean)
-    eigenface.M = 400
-    eigenface.run_reconstruction_classifier()
-    eigenface.run_nn_classifier()
 
     M = np.arange(0,400,25)
 
     ########################
     # RECONSTRUCTION ERROR #
     ########################
-
-    '''
 
     # Obtain reconstruction error as function of M
     err = []
@@ -42,16 +37,15 @@ def main():
     plt.ylabel('Run Time (s)')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Reconstruction Run Time')
-    plt.show()
+    plt.savefig("results/q1-2/reconstruction_run_time.png", format="png", transparent=True)
 
     # Error
     plt.plot(M,err)
     plt.ylabel('Error')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Reconstruction Error')
-    plt.show()
+    plt.savefig("results/q1-2/reconstruction_error.png", format="png", transparent=True)
 
-    '''
 
     #############################
     # RECONSTRUCTION COMPARISON #
@@ -108,7 +102,7 @@ def main():
 
     #plt.title('Comparison of reconstruction')
     plt.savefig("results/q1-2/reconstruction_comparison.png", format="png", transparent=True)
-    plt.show()
+    #plt.show()
 
     ############
     # NN ERROR #
@@ -120,9 +114,64 @@ def main():
         print(m)
         eigenface.M = m
         start = time.time()
-        err.append(eigenface.run_nn_classifier())
+        err.append(eigenface.run_nn_classifier()[0])
         end = time.time()
         run_time.append(end-start)
+
+    # Run Time
+    plt.plot(M,run_time)
+    plt.ylabel('Run Time (s)')
+    plt.xlabel('Number of Eigenvectors')
+    plt.title('Nearest Neighbour Classifer Run Time')
+    plt.savefig("results/q1-2/nn_run_time.png", format="png", transparent=True)
+
+
+    # Error
+    plt.plot(M,err)
+    plt.ylabel('Error (MSE)')
+    plt.xlabel('Number of Eigenvectors')
+    plt.title('Nearest Neighbour Classifer Error')
+    plt.savefig("results/q1-2/nn_error.png", format="png", transparent=True)
+
+    ###################################
+    # RECONSTRUCTION CLASSIFIER ERROR #
+    ###################################
+
+    err = []
+    run_time = []
+    M = np.arange(1,8)
+    for m in M:
+        print(m)
+        eigenface.M = m
+        start = time.time()
+        err.append(eigenface.run_reconstruction_classifier()[0])
+        end = time.time()
+        run_time.append(end-start)
+
+    # Run Time
+    plt.plot(M,run_time)
+    plt.ylabel('Run Time (s)')
+    plt.xlabel('Number of Eigenvectors')
+    plt.title('Reconstruction Classifer Run Time')
+    plt.savefig("results/q1-2/reconstruction_classifier_run_time.png", format="png", transparent=True)
+
+    # Error
+    plt.plot(M,err)
+    plt.ylabel('Error (MSE)')
+    plt.xlabel('Number of Eigenvectors')
+    plt.title('Reconstruction Classifer Error')
+    plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
+
+    ###################################
+    # RECONSTRUCTION CLASSIFIER ERROR #
+    ###################################
+
+    # Best, reconstruction classifier
+    eigenface.M = 2
+    err, y_pred = eigenface.run_reconstruction_classifier()
+    # Best, NN classifier
+    eigenface.M = 400
+    err, y_pred = eigenface.run_nn_classifier()
 
 if __name__ == '__main__':
     main()
