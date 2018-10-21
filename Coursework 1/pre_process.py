@@ -13,11 +13,10 @@ DATA_DIR = "data/"
 EFFICIENT = True
 
 def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
-    #p = np.argsort(np.abs(eigenvalues))[::-1]
-    #eigenvalues_ = copy.deepcopy(eigenvalues[p])
-    #eigenvectors_ = copy.deepcopy(np.real(eigenvectors[:,p]))
-    #return eigenvalues_, eigenvectors_
-    return eigenvalues, eigenvectors
+    p = np.argsort(np.abs(eigenvalues))[::-1]
+    eigenvalues_ = copy.deepcopy(eigenvalues[p])
+    eigenvectors_ = copy.deepcopy(np.real(eigenvectors[:,p]))
+    return eigenvalues_, eigenvectors_
 
 
 def load_mat(file_path, features = "X", labels = "l"):
