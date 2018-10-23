@@ -99,33 +99,49 @@ def preprocess():
         * All the data split into lists of [features, labels]
 
     """
-    types = ["training","validation", "test"]
+    types = ["training","query", "gallery"]
     print("Loading of index data...")
+
     labels = load_mat(RAW_DIR + "cuhk03_new_protocol_config_labeled.mat", "labels")
+    _training_indexes = loadmat(RAW_DIR + 'cuhk03_new_protocol_config_labeled.mat')['train_idx'].flatten()
+    _query_indexes = loadmat(RAW_DIR + 'cuhk03_new_protocol_config_labeled.mat')['query_idx'].flatten()
+    _gallery_indexes = loadmat(RAW_DIR + 'cuhk03_new_protocol_config_labeled.mat')['gallery_idx'].flatten()
+    camIds = loadmat(RAW_DIR + 'cuhk03_new_protocol_config_labeled.mat')['camId'].flatten()
+
+    training_indexes = np.array([i-1 for i in _training_indexes])
+    query_indexes = np.array([i-1 for i in _query_indexes])
+    gallery_indexes = np.array([i-1 for i in _gallery_indexes])
+
+    training_labels = labels[training_indexes]
+    query_labels = labels[query_indexes]
+    gallery_labels = labels[gallery_indexes]
+
+    training_camId = camIds[training_indexes]
+    query_camId = camIds[query_indexes]
+    gallery_camId = camIds[gallery_indexes]
 
     print("Loading of features...")
     with open(RAW_DIR + "feature_data.json", 'r') as data:
         features = np.array(json.load(data))
         features = features.reshape((N,TOTAL_SIZE))
 
-        print("Splitting features and labels...")
-        _training_data, _validation_data, training_labels, validation_labels = train_test_split(features, labels, test_size=0.2)
-        _test_data, _validation_data, test_labels, validation_labels = train_test_split(_validation_data, validation_labels, test_size=0.5)
-
-        assert(len(labels) == (len(test_labels) + len (validation_labels) + len(training_labels)))
-        assert(len(features) == (len(_test_data) + len (_validation_data) + len(_training_data)))
+        _training_data = features[training_indexes,:]
+        _query_data = features[query_indexes,:]
+        _gallery_data = features[gallery_indexes,:]
 
         print("Normalizing data...")
         training_data = normalize(_training_data)
-        validation_data = normalize(_validation_data)
-        test_data = normalize(_test_data)
+        query_data = normalize(_query_data)
+        gallery_data = normalize(_gallery_data)
 
         print("Saving data...")
-        all_data = [[training_data,training_labels],[validation_data, validation_labels], [test_data,test_labels]]
+        all_data = [[training_data,training_labels, training_camId], \
+                    [query_data, query_labels, query_camId], \
+                    [gallery_data,gallery_labels, gallery_camId]]
         for i,t in enumerate(types):
             save_data(all_data[i][0],PROCESSED_DIR,"{}_features".format(t))
             save_data(all_data[i][1],PROCESSED_DIR,"{}_labels".format(t))
-
+            save_data(all_data[i][2],PROCESSED_DIR,"{}_camId".format(t))
 
         return all_data
 
@@ -149,12 +165,13 @@ def load_data():
         return preprocess()
     print("Loading data...")
 
-    types = ["training","validation", "test"]
+    types = ["training","query", "gallery"]
     all_data = []
     for t in types:
         data = []
         data.append(np.load(PROCESSED_DIR + "{}_features.npy".format(t)))
         data.append(np.load(PROCESSED_DIR + "{}_labels.npy".format(t)))
+        data.append(np.load(PROCESSED_DIR + "{}_camId.npy".format(t)))
         all_data.append(data)
     print("Finished loading data...")
     return all_data
