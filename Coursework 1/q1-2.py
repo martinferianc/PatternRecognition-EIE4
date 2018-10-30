@@ -15,6 +15,8 @@ def main():
     # Initialise EigenFace Class
     eigenface = EigenFace(copy.deepcopy(dataset),copy.deepcopy(eigenvectors[0]),mean)
 
+    err, y_pred = eigenface.run_reconstruction_classifier()
+
     M = np.arange(0,400,25)
 
     ########################

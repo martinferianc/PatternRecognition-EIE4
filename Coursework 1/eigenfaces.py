@@ -153,14 +153,27 @@ class EigenFace:
             else:
                 class_space[self.train_labels[i][0]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i][0]]['data'] ,train_faces[:,[i]])))
 
-
         for a in class_space:
             # compute eigenvectors
             _,class_space[a]['eigenvectors'] = copy.deepcopy(compute_eigenspace(class_space[a]['data']))
             # select M eigenvectors
-            class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:self.M])
+            #class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:self.M])
             # compute mean
             class_space[a]['mean'] = class_space[a]['data'].mean(axis=1).reshape(-1, 1)
+
+        # Plot M for each training vector
+        for a in class_space:
+            # get possible M
+            tmp_M = np.arange(1,class_space[a]['eigenvectors'].shape[1])
+            print(tmp_M)
+            err = np.array([])
+            for m in tmp_M:
+                # Select m eigenvectors
+                eigenvectors = = copy.deepcopy(class_space[a]['eigenvectors'][:,:m])
+                # project to face space
+                facespace = np.dot(class_space[a]['data'].T, eigenvectors)
+                # get reconstruction_error across class
+                for
 
         label_results = []
         # Perform reconstruction for each class space and evaluate error
