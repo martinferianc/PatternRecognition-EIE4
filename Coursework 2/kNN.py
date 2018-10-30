@@ -9,157 +9,176 @@ import matplotlib.pyplot as plt
 # Import post process analysing methods
 from post_process import calculate_scores, plot_confusion_matrix
 
-def find_best_K(data,type="naive"):
-    """
-    Finding the best K for each of the methods
-    shown in the lecture notes
+from sklearn.metrics import precision_score
+from sklearn.preprocessing import label_binarize
 
-    Parameters
-    ----------
-    data: list
-        Data which can be training, validation or
-        test including the labels
-    type: str
-        Which implementation of kNN should we look
-        k for
-    Returns
-    -------
-    results: dict
-        * A dictionary containing the errors for the weighted
-        as well as unoformly evaluated distances
-    """
-    training_data = data[0][0]
-    training_labels = data[0][1]
 
-    validation_data = data[1][0]
-    validation_labels = data[1][1]
+from tqdm import tqdm
 
-    types = ["uniform", "distance"]
+from collections import Counter
 
-    results = {}
-    for weights in types:
-        weight_errors = []
-        clf = None
-        if type == "naive":
-            clf = neighbors.KNeighborsClassifier(1, weights=weights)
-        else:
-            raise Exception("Wrong method!")
-        clf.fit(training_data, training_labels)
-        print("Model fitted...")
 
-        for k in range(1,10):
-            print("Finding k={} for weight type={}".format(k,weights))
 
-            clf.neighbors = k
-
-            # Predict
-            predicted_labels = clf.predict(validation_data)
-            error = 0
-            for i in range(len(predicted_labels)):
-                if predicted_labels[i]!=validation_labels[i]:
-                    error+=1
-            error/=len(validation_labels)
-
-            weight_errors.append(error)
-
-        results[weights] = np.array(weight_errors)
-
-    return results
-
-def test(data, k, weighting, type="naive"):
-    """
-    Evaluating the best found k
-    on the test data rogether with the
-    type of weighting as well as type
-    of kNN
-
-    Parameters
-    ----------
-    data: list
-        Data which can be training, validation or
-        test including the labels
-    k: int
-        Best found k found for this method/type
-    type: str
-        Which implementation of kNN should we look
-        k for
-    Returns
-    -------
-    error: float
-        * Error computed on the test set
-    test_labels: list
-        * Labels needed for the further analysis
-    predicted_labels: list
-        * Labels needed for the further analysis
-    """
-    training_data = data[0][0]
-    training_labels = data[0][1]
-
-    test_data = data[2][0]
-    test_labels = data[2][1]
-
-    results = {}
-    clf = None
-    if type == "naive":
-        clf = neighbors.KNeighborsClassifier(k, weights=weighting)
-    else:
-        raise Exception("Wrong method!")
-
-    clf.fit(training_data, training_labels)
-    print("Model fitted...")
-
-    # Predict
-    predicted_labels = clf.predict(test_data)
-    error = 0
-    for i in range(len(predicted_labels)):
-        if predicted_labels[i]!=test_labels[i]:
-            error+=1
-    error/=len(test_labels)
-
-    return error, test_labels, predicted_labels
-
-def analyse_KNN():
+def analyse_KNN(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests
     """
 
     # Define all the different methods that we are going to try
-    methods = ["naive"]
+    methods = ["Manhattan Distance", "Euclidian Distance"]
+    results = {}
     for method in methods:
         all_data = load_data()
-        # Find the best results for all different methods and types
-        results = find_best_K(all_data, type=method)
 
-        # Generate corresponding plots
-        x = list(range(1,len(results["uniform"])+1))
-        plt.figure()
-        plt.title('Error for uniformly weighted {} kNN classifier'.format(method))
-        plt.xlabel('k Neighbours')
-        plt.ylabel('Error')
-        plt.axis([1, 9,0,1])
-        plt.plot(x,results["uniform"],"bo")
-        plt.savefig('results/kNN/uniform_{}_kNN.png'.format(method),
-                        format='png', transparent=True)
+        training_data = all_data[0]
+        query_data = all_data[1]
+        gallery_data = all_data[2]
 
-        plt.figure()
-        plt.title('Error for distance weighted {} kNN classifier'.format(method))
-        plt.xlabel('k Neighbours')
-        plt.ylabel('Error')
-        plt.axis([1, 9,0,1])
-        plt.plot(x,results["distance"],"bo")
-        plt.savefig('results/kNN/weighted_{}_kNN.png'.format(method),
-                            format='png', transparent=True)
+        query_labels = query_data[1]
+        training_labels = training_data[1]
+        gallery_labels = gallery_data[1]
 
-        types = ["uniform", "distance"]
+        query_features = query_data[0]
+        training_features = training_data[0]
+        gallery_features = gallery_data[0]
+#
+        query_camIds = query_data[2]
+        training_camIds = training_data[2]
+        gallery_camIds = gallery_data[2]
 
-        for t in types:
-            best_k = np.argmin(results[t])+1
-            error, test_labels, predicted_labels = test(all_data, best_k, t)
-            calculate_scores(test_labels, predicted_labels, "results/kNN/{}_{}_{}_scores".format(t,best_k,method))
-            plot_confusion_matrix(test_labels, predicted_labels, "results/kNN/{}_{}_{}_CM".format(t,best_k,method))
-            plot_confusion_matrix(test_labels, predicted_labels, True, "results/kNN/{}_{}_{}_CM_normalized".format(t,best_k,method))
+        errors = [0]*k
+        labels= [None]*k
+        tops = [0]*k
 
+        for i in tqdm(range(len(query_features))):
+            query = query_features[i,:]
+            query_label = query_labels[i]
+            query_camId = query_camIds[i]
+
+            selected_gallery_features = []
+            selected_gallery_labels = []
+            for j in range(len(gallery_features)):
+                if not (gallery_camIds[j]==query_camId and gallery_labels[j]==query_label):
+                    selected_gallery_features.append(gallery_features[j])
+                    selected_gallery_labels.append(gallery_labels[j])
+
+            selected_gallery_features = np.array(selected_gallery_features)
+            selected_gallery_labels = np.array(selected_gallery_labels)
+            clf = None
+            if method == "Manhattan Distance":
+                clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform")
+            elif method == "Euclidian Distance":
+                clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform")
+
+            clf.fit(selected_gallery_features, selected_gallery_labels)
+            predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
+            predicted_labels = [selected_gallery_labels[l] for l in predicted_neighbors]
+
+            for i in range(len(errors)):
+                rank = predicted_labels[0][:i+1]
+                b = Counter(rank)
+                label = b.most_common(1)[0][0]
+
+                if labels[i] is None:
+                    labels[i] = [label]
+                else:
+                    labels[i].append(label)
+                if query_label not in rank:
+                    tops[i]+=1
+
+                if label!=query_label:
+                    errors[i]+=1
+
+
+        for i in range(len(errors)):
+            errors[i]/=len(query_features)
+            tops[i]/=len(query_features)
+
+        results[method] = [labels,errors,tops]
+
+    return methods, results, query_labels
 
 if __name__ == '__main__':
-    analyse_KNN()
+    k = 10
+    methods, results, true_labels = analyse_KNN(k)
+
+
+    for method in methods:
+        labels, errors, tops = results[method]
+        mAPs = []
+        for i in range(len(errors)):
+            predicted_labels = np.array(labels[i])
+            true_labels = np.array(true_labels)
+            p_score =  precision_score(true_labels, predicted_labels, average=None)
+            mAP = np.mean(p_score)
+            mAPs.append(mAP)
+
+        X = list(range(1,k+1))
+        plt.plot(X, errors)
+        plt.title("k-NN error for {}".format(method))
+        plt.xlabel("k")
+        plt.ylabel("Error")
+        plt.savefig("results/kNN_error_{}.png".format(method))
+        plt.close()
+
+        print("k-NN error for {}: {}".format(method,errors))
+
+
+        plt.plot(X, mAPs)
+        plt.title("k-NN mAP for {}".format(method))
+        plt.xlabel("k")
+        plt.ylabel("mAP")
+        plt.savefig("results/kNN_mAP_{}.png".format(method))
+        plt.close()
+
+        print("k-NN mAPs for {}: {}".format(method,mAPs))
+
+
+        plt.plot(X, tops)
+        plt.title("k-NN error for {}".format(method))
+        plt.xlabel("k")
+        plt.ylabel("Error")
+        plt.savefig("results/kNN_tops_{}.png".format(method))
+        plt.close()
+
+        print("k-NN tops for {}: {}".format(method,tops))
+
+    X = list(range(1,k+1))
+    for method in methods:
+        _, errors, _ = results[method]
+        plt.plot(X, errors, label=method)
+    plt.title("k-NN error")
+    plt.xlabel("k")
+    plt.ylabel("Error")
+    plt.legend()
+    plt.savefig("results/kNN_errors.png")
+    plt.close()
+
+    for method in methods:
+        _, _, tops = results[method]
+        plt.plot(X, tops, label=method)
+    plt.title("k-NN error")
+    plt.xlabel("k")
+    plt.ylabel("Error")
+    plt.legend()
+    plt.savefig("results/kNN_tops.png")
+    plt.close()
+
+
+    for method in methods:
+        labels, errors, tops = results[method]
+        mAPs = []
+        for i in range(len(errors)):
+            predicted_labels = np.array(labels[i])
+            true_labels = np.array(true_labels)
+            p_score =  precision_score(true_labels, predicted_labels, average=None)
+            mAP = np.mean(p_score)
+            mAPs.append(mAP)
+        plt.plot(X, mAPs, label=method)
+    plt.title("k-NN mAPs")
+    plt.xlabel("k")
+    plt.ylabel("mAP")
+    plt.legend()
+    plt.savefig("results/kNN_mAPs.png")
+    plt.close()
