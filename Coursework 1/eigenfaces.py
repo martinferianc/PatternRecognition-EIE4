@@ -6,6 +6,7 @@ from pre_process import *
 from eigenfaces import *
 import copy
 from pre_process import compute_eigenspace
+
 class EigenFace:
     def __init__(self,dataset,eigenvectors,mean):
 
