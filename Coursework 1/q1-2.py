@@ -15,6 +15,8 @@ def main():
     # Initialise EigenFace Class
     eigenface = EigenFace(copy.deepcopy(dataset),copy.deepcopy(eigenvectors[0]),mean)
 
+    #err, y_pred = eigenface.run_reconstruction_classifier()
+
     M = np.arange(0,400,25)
 
     ########################
@@ -133,9 +135,10 @@ def main():
     plt.title('Nearest Neighbour Classifer Error')
     plt.savefig("results/q1-2/nn_error.png", format="png", transparent=True)
 
-    ###################################
-    # RECONSTRUCTION CLASSIFIER ERROR #
-    ###################################
+
+    #############################################
+    # RECONSTRUCTION CLASSIFIER ERROR (FIXED M) #
+    #############################################
 
     err = []
     run_time = []
@@ -144,7 +147,7 @@ def main():
         print(m)
         eigenface.M = m
         start = time.time()
-        err.append(eigenface.run_reconstruction_classifier()[0])
+        err.append(eigenface.run_reconstruction_classifier(FIXED_M=True)[0])
         end = time.time()
         run_time.append(end-start)
 
@@ -162,9 +165,37 @@ def main():
     plt.title('Reconstruction Classifer Error')
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
 
-    ###################################
-    # RECONSTRUCTION CLASSIFIER ERROR #
-    ###################################
+
+    ############################################
+    # RECONSTRUCTION CLASSIFIER ERROR (CUTOFF) #
+    ############################################
+
+    err = []
+    run_time = []
+    err_cutoff = np.arange(1,70,5)
+    for e in err_cutoff:
+        start = time.time()
+        err.append(eigenface.run_reconstruction_classifier(err_min=e)[0])
+        end = time.time()
+        run_time.append(end-start)
+
+    # Run Time
+    plt.plot(err_cutoff,run_time)
+    plt.ylabel('Run Time (s)')
+    plt.xlabel('Cutoff for Class-wise Reconstruction Error')
+    plt.title('Reconstruction Classifer Run Time')
+    plt.savefig("results/q1-2/reconstruction_classifier_run_time.png", format="png", transparent=True)
+
+    # Error
+    plt.plot(M,err)
+    plt.ylabel('Error (MSE)')
+    plt.xlabel('Cutoff for Class-wise Reconstruction Error')
+    plt.title('Reconstruction Classifer Error')
+    plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
+
+    #########################
+    # CLASSIFIER COMPARISON #
+    #########################
 
     # Best, reconstruction classifier
     eigenface.M = 2
@@ -172,6 +203,7 @@ def main():
     # Best, NN classifier
     eigenface.M = 400
     err, y_pred = eigenface.run_nn_classifier()
+
 
 if __name__ == '__main__':
     main()

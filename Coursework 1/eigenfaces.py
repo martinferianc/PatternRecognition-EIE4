@@ -6,6 +6,7 @@ from pre_process import *
 from eigenfaces import *
 import copy
 from pre_process import compute_eigenspace
+
 class EigenFace:
     def __init__(self,dataset,eigenvectors,mean):
 
@@ -103,6 +104,29 @@ class EigenFace:
             reconstructed_face += copy.deepcopy(projected_face[0,i]) * copy.deepcopy(self.m_eigenvectors[:,[i]])
         return copy.deepcopy(reconstructed_face)
 
+    def reconstruction_general(self,projected_face,mean,eigenvectors):
+        reconstructed_face = copy.deepcopy(mean)
+        for i in range(projected_face.shape[1]):
+            reconstructed_face += copy.deepcopy(projected_face[0,i]) * copy.deepcopy(eigenvectors[:,[i]])
+        return copy.deepcopy(reconstructed_face)
+
+    def run_reconstruction_general(self,m,faces,mean,eigenvectors_in):
+        err_results = []
+
+        # select M eigenvectors
+        eigenvectors = copy.deepcopy(eigenvectors_in[:,:m])
+
+        facespace = np.dot(faces.T, eigenvectors)
+
+        # run nn classifier for every project test face
+        for i in range(facespace.shape[0]):
+            reconstructed_face = copy.deepcopy(self.reconstruction_general(facespace[[i],:],mean,eigenvectors))
+            err_results.append(self.mse_error(faces[:,[i]]+mean,reconstructed_face))
+        #print('error: ',np.mean(err_results)/facespace.shape[0])
+        #print(np.mean(err_results)/facespace.shape[0])
+        return np.mean(err_results)/facespace.shape[0]
+
+
     def run_reconstruction(self):
         err_results = []
 
@@ -137,7 +161,9 @@ class EigenFace:
         print('error: ',err)
         return err , label_results
 
-    def run_reconstruction_classifier(self):
+    def run_reconstruction_classifier(self,err_min=19,FIXED_M=False):
+
+        ERR_MIN = err_min
 
         # Add mean back (not used in this classifier)
         train_faces = copy.deepcopy(self.train_faces) + copy.deepcopy(self.mean)
@@ -153,14 +179,25 @@ class EigenFace:
             else:
                 class_space[self.train_labels[i][0]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i][0]]['data'] ,train_faces[:,[i]])))
 
-
         for a in class_space:
             # compute eigenvectors
             _,class_space[a]['eigenvectors'] = copy.deepcopy(compute_eigenspace(class_space[a]['data']))
             # select M eigenvectors
-            class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:self.M])
+            #class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:self.M])
             # compute mean
             class_space[a]['mean'] = class_space[a]['data'].mean(axis=1).reshape(-1, 1)
+            if not FIXED_M:
+                # get possible M
+                tmp_M = np.arange(1,class_space[a]['eigenvectors'].shape[1])
+                for m in tmp_M:
+                    err = self.run_reconstruction_general(m,class_space[a]['data'],class_space[a]['mean'],class_space[a]['eigenvectors'])
+                    if err < ERR_MIN:
+                        class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:m])
+                        break
+            else:
+                class_space[a]['eigenvectors'] = copy.deepcopy(class_space[a]['eigenvectors'][:,:self.M])
+
+
 
         label_results = []
         # Perform reconstruction for each class space and evaluate error
