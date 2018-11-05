@@ -76,17 +76,17 @@ class LDA:
         A = copy.deepcopy(matrix)
         return np.dot(A,A.T)
 
-    def get_pca(self, M):
+    def get_pca(self, M_pca):
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
         eigenvalues, eigenvectors = self.compute_covariance_decomposition(self.dataset['train_x'] - self.total_mean)
         # set M eigenvectors to be w_pca
-        self.w_pca = eigenvectors[:,:M]
+        self.w_pca = eigenvectors[:,:M_pca]
         return self.w_pca
 
     def run_pca_lda(self):
 
         # Get PCA transform
-        self.get_pca(20)
+        self.get_pca(200)
 
         # Calculate covariance matrices
         class_covariance = []
@@ -107,9 +107,59 @@ class LDA:
         # Calculate optimal projection
         lda_projection = np.matmul(np.linalg.pinv(class_covariance),class_mean_covariance)
 
-        self.w_opt = np.matmul(lda_projection.T,self.w_pca.T)
+        # Save LDA projection
+        self.w_lda = lda_projection
+        self.w_lda = self.w_lda[:,:100]
+        self.w_lda = self.w_lda / np.linalg.norm(self.w_lda, axis=0)
 
+        self.w_opt = np.matmul(self.w_lda.T,self.w_pca.T)
+        self.w_opt = self.w_opt.T
+
+        self.w_opt = self.w_opt / np.linalg.norm(self.w_opt,axis=0)
+
+        #self.w_opt = self.w_opt[:,:100]
+
+    def project(self,img,vec):
+        return copy.deepcopy(np.dot(img.T, vec))
+
+    def nn_classifier(self, face, facespace, labels):
+        nn = copy.deepcopy(facespace[0])
+        label_index = 0
+        min_distance =  np.linalg.norm(face - nn)
+        for i in range(1,facespace.shape[0]):
+            #get distance between
+            curr_distance = np.linalg.norm(face - facespace[i])
+            if curr_distance < min_distance:
+                nn = facespace[i]
+                min_distance = curr_distance
+                label_index = i
+        return labels[label_index]
+
+    def run_nn_classifier(self):
+        # empty array to hold label results
+        label_results = []
+
+        # project faces
+        projected_test_x  = self.project((self.dataset['test_x'] -self.total_mean),self.w_opt)
+        projected_train_x = self.project((self.dataset['train_x']-self.total_mean),self.w_opt)
+
+        # run nn classifier for every project test face
+        for face in tqdm(projected_test_x):
+            # get label from nn classifier
+            label_results.append(self.nn_classifier(face,projected_train_x,self.dataset['train_y']))
+        err = self.identity_error(label_results,self.dataset['test_y'])
+        print('error: ',err)
+        return err , label_results
+
+    def identity_error(self, labels, labels_correct):
+        err = 0
+        for i in range(len(labels)):
+            if labels[i] != labels_correct[i]:
+                err += 1
+        #normalise by size of labels
+        return err/len(labels)
 
 if __name__ == '__main__':
     lda = LDA('data/face.mat')
     lda.run_pca_lda()
+    lda.run_nn_classifier()
