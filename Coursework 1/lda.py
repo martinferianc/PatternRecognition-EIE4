@@ -55,10 +55,10 @@ class LDA:
 
         # Get mean for each class
         for label in self.train_class_data:
-            self.train_class_mean[label] = copy.deepcopy(self.train_class_data[label]).mean(axis=1)
+            self.train_class_mean[label] = copy.deepcopy(self.train_class_data[label]).mean(axis=1).reshape(-1,1)
 
         # Get total mean
-        self.total_mean = copy.deepcopy(self.dataset['train_x']).mean(axis=1)
+        self.total_mean = copy.deepcopy(self.dataset['train_x']).mean(axis=1).reshape(-1,1)
 
     def compute_covariance_decomposition(self, matrix):
         A = copy.deepcopy(matrix)
@@ -72,17 +72,44 @@ class LDA:
         # return eigenvectors and eigenvalues
         return sort_eigenvalues_eigenvectors( eigenvalues, eigenvectors )
 
+    def compute_covariance(self,matrix):
+        A = copy.deepcopy(matrix)
+        return np.dot(A,A.T)
 
     def get_pca(self, M):
-        # get eigenvalue decomposition of total covariance matrix
+        # get eigenvalue decomposition of total covariance matrix (X - Xbar)
         eigenvalues, eigenvectors = self.compute_covariance_decomposition(self.dataset['train_x'] - self.total_mean)
         # set M eigenvectors to be w_pca
         self.w_pca = eigenvectors[:,:M]
         return self.w_pca
 
     def run_pca_lda(self):
-        pass
+
+        # Get PCA transform
+        self.get_pca(20)
+
+        # Calculate covariance matrices
+        class_covariance = []
+        class_mean_covariance = []
+
+        for key in tqdm(self.train_class_data):
+            class_covariance.append(self.compute_covariance(self.train_class_data[key] - self.train_class_mean[key]))
+        class_covariance = sum(class_covariance)
+
+        for key in tqdm(self.train_class_mean):
+            class_mean_covariance.append(self.compute_covariance(self.total_mean - self.train_class_mean[key]))
+        class_mean_covariance = sum(class_mean_covariance)
+
+        # Project covariance matrices to PCA space
+        class_covariance        = np.matmul(self.w_pca.T, np.matmul( class_covariance, self.w_pca))
+        class_mean_covariance   = np.matmul(self.w_pca.T, np.matmul(class_mean_covariance, self.w_pca))
+
+        # Calculate optimal projection
+        lda_projection = np.matmul(np.linalg.pinv(class_covariance),class_mean_covariance)
+
+        self.w_opt = np.matmul(lda_projection.T,self.w_pca.T)
 
 
 if __name__ == '__main__':
     lda = LDA('data/face.mat')
+    lda.run_pca_lda()
