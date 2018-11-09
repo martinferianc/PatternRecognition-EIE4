@@ -4,23 +4,36 @@ import time
 import tqdm
 import copy
 
-from pre_process import load_data
+from pre_process_raw import load_data
 from lda import LDA
 
 def main():
+
+    # Load dataset
+    dataset = load_data()
+
     ######################
     # PCA-LDA EVALUATION #
     ######################
 
     # Evaluate for different M_pca
     M_pca = [5,20,50,100]
-    for m in M_pca:
-        pass # TODO: run pca-lda (fixed M_lda)
-
-    # Evaluate for different M_lda
     M_lda = [5,20,50,100]
-    for m in M_lda:
-        pass # TODO: run pca-lda (fixed M_pca)
+
+    for m_pca in M_pca:
+        for m_lda in M_lda:
+            # Setup
+            lda = LDA()
+            lda.dataset = copy.deepcopy(dataset)
+            lda.run_setup()
+
+            # Set hyper parameters
+            lda.M_pca = m_pca
+            lda.M_lda = m_lda
+
+            # Run
+            lda.run_pca_lda()
+            lda.run_nn_classifier()
 
 
     # TODO:
@@ -40,6 +53,9 @@ def main():
     NUM_MACHINES = 5
 
     # Machine Parameters
+    M_pca = 50
+    M_lda = 50
+    sample_size = 20
 
     machine = [LDA() for i in range(NUM_MACHINES)]
 
@@ -59,3 +75,6 @@ def main():
         machine[i].get_mean()
         machine[i].M_pca = M_pca
         machine[i].M_lda = M_lda
+
+if __name__ == '__main__':
+    main()
