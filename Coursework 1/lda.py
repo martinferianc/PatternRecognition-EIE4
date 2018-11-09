@@ -9,7 +9,7 @@ from pre_process import sort_eigenvalues_eigenvectors
 from sklearn.model_selection import train_test_split
 
 class LDA:
-    def __init__(self,dataset_filename,LOAD=True):
+    def __init__(self,dataset_filename='data/face.mat',LOAD=False):
 
         # Dataset
         self.dataset = {'train_x': [], 'train_y': [], 'test_x': [], 'test_y': []}
@@ -26,16 +26,35 @@ class LDA:
         self.w_lda = []
         self.w_opt = []
 
+        # Model HyperParameters
+        self.M_pca = 0
+        self.M_lda = 0
+
         # Load data
         if LOAD:
             self.get_dataset(dataset_filename)
 
-    def load_from_file(self):
+    def get_mean(self):
+        # get Total Mean
+        self.total_mean = copy.deepcopy(self.dataset['train_x']).mean(axis=1).reshape(-1,1)
 
-        #get stored data
+        # get within-class mean
+        for label in self.train_class_data:
+            self.train_class_mean[label] = copy.deepcopy(self.train_class_data[label]).mean(axis=1).reshape(-1,1)
 
-        #organise to classes
-        pass
+    def split_classes(self):
+        # Get all class labels
+        labels = set(self.dataset['train_y'])
+
+        # Seperate Classes
+        for label in labels:
+            # Get indices for those labels
+            indices = []
+            for i in range(self.dataset['train_y'].shape[0]):
+                indices.append(i) if (self.dataset['train_y'][i] == label) else 0
+
+            # Select class from those indices
+            self.train_class_data[label] = copy.deepcopy(self.dataset['train_x'][:,indices])
 
     def get_dataset(self,filename):
         # Load data from file
@@ -188,6 +207,6 @@ class LDA:
         return err/len(labels)
 
 if __name__ == '__main__':
-    lda = LDA('data/face.mat')
+    lda = LDA(LOAD=True)
     lda.run_pca_lda()
     lda.run_nn_classifier()
