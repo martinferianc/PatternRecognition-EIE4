@@ -35,6 +35,7 @@ def main():
         run_time.append(end-start)
 
     # Run Time
+    plt.figure()
     plt.plot(M,run_time)
     plt.ylabel('Run Time (s)')
     plt.xlabel('Number of Eigenvectors')
@@ -42,6 +43,7 @@ def main():
     plt.savefig("results/q1-2/reconstruction_run_time.png", format="png", transparent=True)
 
     # Error
+    plt.figure()
     plt.plot(M,err)
     plt.ylabel('Error')
     plt.xlabel('Number of Eigenvectors')
@@ -54,6 +56,7 @@ def main():
     #############################
 
     # Compair Image for different M
+    plt.figure()
     f, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, sharey=True)
     f.suptitle('Comparison of Reconstructed Faces')
     face = copy.deepcopy(eigenface.train_faces[:,[20]])
@@ -121,6 +124,7 @@ def main():
         run_time.append(end-start)
 
     # Run Time
+    plt.figure()
     plt.plot(M,run_time)
     plt.ylabel('Run Time (s)')
     plt.xlabel('Number of Eigenvectors')
@@ -129,6 +133,7 @@ def main():
 
 
     # Error
+    plt.figure()
     plt.plot(M,err)
     plt.ylabel('Error (MSE)')
     plt.xlabel('Number of Eigenvectors')
@@ -152,6 +157,7 @@ def main():
         run_time.append(end-start)
 
     # Run Time
+    plt.figure()
     plt.plot(M,run_time)
     plt.ylabel('Run Time (s)')
     plt.xlabel('Number of Eigenvectors')
@@ -159,6 +165,7 @@ def main():
     plt.savefig("results/q1-2/reconstruction_classifier_run_time.png", format="png", transparent=True)
 
     # Error
+    plt.figure()
     plt.plot(M,err)
     plt.ylabel('Error (MSE)')
     plt.xlabel('Number of Eigenvectors')
@@ -180,6 +187,7 @@ def main():
         run_time.append(end-start)
 
     # Run Time
+    plt.figure()
     plt.plot(err_cutoff,run_time)
     plt.ylabel('Run Time (s)')
     plt.xlabel('Cutoff for Class-wise Reconstruction Error')
@@ -187,6 +195,7 @@ def main():
     plt.savefig("results/q1-2/reconstruction_classifier_run_time.png", format="png", transparent=True)
 
     # Error
+    plt.figure()
     plt.plot(M,err)
     plt.ylabel('Error (MSE)')
     plt.xlabel('Cutoff for Class-wise Reconstruction Error')

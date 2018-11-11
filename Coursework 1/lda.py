@@ -131,13 +131,17 @@ class LDA:
                 copy.deepcopy(matrix),
                 copy.deepcopy(vec)))
 
-    def run_pca_lda(self):
+    def run_pca_lda(self,m_pca_type=0,m_lda_type=0): # 0 - single value, 1 - list
 
         # PCA
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
         _, pca_eigenvectors = self.compute_covariance_decomposition(copy.deepcopy(self.dataset['train_x']) - self.total_mean)
         # set M eigenvectors to be w_pca
-        self.w_pca = copy.deepcopy(pca_eigenvectors[:,:min(self.M_pca,pca_eigenvectors.shape[1])])
+        if m_pca_type == 0:
+            self.w_pca = copy.deepcopy(pca_eigenvectors[:,:min(self.M_pca,pca_eigenvectors.shape[1])])
+        if m_pca_type == 1:
+            self.w_pca = copy.deepcopy(pca_eigenvectors[:,self.M_pca])
+
 
         w_pca_tmp = copy.deepcopy(self.w_pca)
 
@@ -160,9 +164,6 @@ class LDA:
         #print('class covariance rank = ',np.linalg.matrix_rank(class_covariance))
         #print('class mean covariance rank = ',np.linalg.matrix_rank(class_mean_covariance))
 
-        print(class_covariance.shape)
-        print(class_mean_covariance.shape)
-
         # Project covariance matrices to PCA space
         class_covariance        = self.project_matrix(class_covariance, self.w_pca)
         class_mean_covariance   = self.project_matrix(class_mean_covariance, self.w_pca)
@@ -171,9 +172,6 @@ class LDA:
         #print('class covariance rank = ',np.linalg.matrix_rank(class_covariance))
         #print('class mean covariance rank = ',np.linalg.matrix_rank(class_mean_covariance))
 
-        print(class_covariance.shape)
-        print(class_mean_covariance.shape)
-
         # Calculate optimal projection
         lda_projection = np.matmul(np.linalg.inv(class_covariance),class_mean_covariance)
 
@@ -181,17 +179,16 @@ class LDA:
         _, lda_eigenvectors = self.eigenvalue_decomposition(lda_projection)
         #self.w_lda  = self.w_lda[:,:M_lda]
         #self.w_lda  = self.w_lda / np.linalg.norm(self.w_lda, axis=0)
-        self.w_lda = copy.deepcopy(lda_eigenvectors[:,:min(self.M_lda,lda_eigenvectors.shape[1])])
-        print(self.w_lda.shape)
+        if m_lda_type == 0:
+            self.w_lda = copy.deepcopy(lda_eigenvectors[:,:min(self.M_lda,lda_eigenvectors.shape[1])])
+        if m_lda_type == 1:
+            self.w_lda = copy.deepcopy(lda_eigenvectors[:,self.M_lda])
 
         self.w_opt = np.matmul(
             copy.deepcopy(self.w_lda.T),
             copy.deepcopy(self.w_pca.T))
 
         self.w_opt = self.w_opt.T
-
-        #self.w_opt = self.w_opt / np.linalg.norm(self.w_opt,axis=0)
-
 
     def project(self,img,vec):
         return copy.deepcopy(np.dot(copy.deepcopy(img.T), copy.deepcopy(vec)))
@@ -207,7 +204,7 @@ class LDA:
                 nn = facespace[i]
                 min_distance = curr_distance
                 label_index = i
-        return labels[label_index]
+        return labels[label_index][0]
 
     def run_nn_classifier(self):
         # empty array to hold label results
@@ -216,6 +213,10 @@ class LDA:
         # project faces
         projected_test_x  = self.project((copy.deepcopy(self.dataset['test_x']) -self.total_mean),copy.deepcopy(self.w_opt))
         projected_train_x = self.project((copy.deepcopy(self.dataset['train_x'])-self.total_mean),copy.deepcopy(self.w_opt))
+        #projected_test_x  = np.matmul(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['test_x']))
+        #projected_train_x = np.matmul(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['train_x']))
+
+        print(projected_test_x.shape)
 
         # run nn classifier for every project test face
         for face in tqdm(projected_test_x):

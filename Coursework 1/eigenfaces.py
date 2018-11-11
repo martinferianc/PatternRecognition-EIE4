@@ -228,5 +228,5 @@ class EigenFace:
         return err , label_results
 
 if __name__ == '__main__':
-  t = EigenFace()
-  t.run_nn_classifier()
+    t = EigenFace()
+    t.run_nn_classifier()
