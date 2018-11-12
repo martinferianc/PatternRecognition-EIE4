@@ -47,6 +47,39 @@ def committe_machine_majority_vote(labels):
 
     return labels_out
 
+def committe_machine_average(labels):
+    # number of machines
+    num_machines = len(labels)
+
+    # number of labels
+    num_labels = len(labels[0])
+
+    labels_out = []
+
+    for i in range(num_labels):
+        avg = 0
+        for j in range(num_machines):
+            avg += labels[j][i]
+        labels_out.append(avg/num_machines)
+    return labels_out
+
+def committe_machine_weighted_voting(labels,class_sizes):
+    # number of machines
+    num_machines = len(labels)
+
+    # number of labels
+    num_labels = len(labels[0])
+
+    labels_out = []
+
+    for i in range(num_labels):
+        votes = []
+        for j in range(num_machines):
+            votes.extend([ labels[j][i] ]*class_sizes[j][labels[j][i]])
+        labels_out.append(max(set(votes), key = votes.count))
+
+    return labels_out
+
 def random_parameters(M0,M1,max_size=405):
     vec_index = np.arange(M0).tolist()
     vec_index.extend(random.sample(range(M0, max_size), M1))
@@ -112,7 +145,7 @@ results
 
 
     '''
-    '''
+
     ###################
     # PCA-LDA BAGGING #
     ###################
@@ -123,14 +156,15 @@ results
     # Machine Parameters
     M_pca = 100
     M_lda = 50
-    sample_size = 5
+    sample_size = 300
 
     machine = [LDA() for i in range(NUM_MACHINES)]
+    class_sizes = []
 
     for i in range(NUM_MACHINES):
         # Randomly sample training data TODO try stratified and un-stratified
-        #sample_index = sample_rnd(dataset['train_y'],sample_size)
-        sample_index = sample_stratified(dataset['train_y'],sample_size)
+        sample_index = sample_rnd(dataset['train_y'],sample_size)
+        #sample_index = sample_stratified(dataset['train_y'],sample_size)
 
         # assign dataset for machine
         machine[i].dataset['train_x'] = copy.deepcopy(dataset['train_x'][:,sample_index])
@@ -144,6 +178,8 @@ results
         machine[i].M_pca = M_pca
         machine[i].M_lda = M_lda
 
+        class_sizes.append(machine[i].get_class_sizes())
+
     # variable to store label results
     labels =  [[] for i in range(NUM_MACHINES)]
 
@@ -155,8 +191,20 @@ results
     labels_out = committe_machine_majority_vote(labels)
     err = identity_error(labels_out,dataset['test_y'])
 
-    print('error: ',err)
-    '''
+    print('error(majority voting): ',err)
+
+    # get committee machine output
+    labels_out = committe_machine_weighted_voting(labels,class_sizes)
+    err = identity_error(labels_out,dataset['test_y'])
+
+    print('error(weighted voting): ',err)
+
+    # get committee machine output (average)
+    labels_out = committe_machine_average(labels)
+    err = identity_error(labels_out,dataset['test_y'])
+
+    print('error(average): ',err)
+
 
     ###################################
     # PCA-LDA PARAMETER RANDOMISATION #
@@ -202,7 +250,13 @@ results
     labels_out = committe_machine_majority_vote(labels)
     err = identity_error(labels_out,dataset['test_y'])
 
-    print('error: ',err)
+    print('error(majority voting): ',err)
+
+    # get committee machine output (average)
+    labels_out = committe_machine_average(labels)
+    err = identity_error(labels_out,dataset['test_y'])
+
+    print('error(average): ',err)
 
 if __name__ == '__main__':
     main()

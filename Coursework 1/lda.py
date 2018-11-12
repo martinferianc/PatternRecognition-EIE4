@@ -61,6 +61,15 @@ class LDA:
             # Select class from those indices
             self.train_class_data[label] = copy.deepcopy(self.dataset['train_x'][:,indices])
 
+    def get_class_sizes(self):
+
+        class_sizes = {}
+
+        for label in self.train_class_data:
+            class_sizes[label] = self.train_class_data[label].shape[1]
+
+        return class_sizes
+
     def get_dataset(self,filename):
         # Load data from file
         X, [y] = load_mat(filename)
