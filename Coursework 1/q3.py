@@ -6,6 +6,12 @@ import copy
 from random import randint, sample
 from statistics import mode
 import random
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.neighbors import NearestNeighbors
+
+from sklearn import datasets
+
 
 from pre_process_raw import load_data
 from lda import LDA
@@ -98,7 +104,21 @@ def main():
     # Load dataset
     dataset = load_data()
 
+    '''
+    #dataset['train_x'] = dataset['train_x'].T
+    print(dataset['train_y'].ravel().shape)
 
+    pca = PCA(n_components=140)
+    pca = pca.fit(dataset['train_x']).transform(dataset['train_x'])
+
+
+    lda = LinearDiscriminantAnalysis(n_components=50)
+    lda = lda.fit(dataset['train_x'], dataset['train_y'].ravel()).transform(dataset['train_x'])
+
+    prj = (lda.T).dot(pca.T)
+
+    x = ((lda.dot(pca)).T).dot(dataset['train_x'])
+    '''
 
     ##############
     # BASIC TEST #
@@ -110,8 +130,8 @@ def main():
     lda.run_setup()
 
     # Set hyper parameters
-    lda.M_pca = 143
-    lda.M_lda = 47
+    lda.M_pca = 150
+    lda.M_lda = 40
 
     # Run
     lda.run_pca_lda()
@@ -149,7 +169,7 @@ def main():
             print("M PCA: {}, M LDA: {}, ERROR: {}".format(m_pca,m_lda,err))
 
     '''
-
+    '''
     ###################
     # PCA-LDA BAGGING #
     ###################
@@ -209,6 +229,7 @@ def main():
 
     print('error(average): ',err)
 
+    '''
 
     ###################################
     # PCA-LDA PARAMETER RANDOMISATION #
@@ -218,11 +239,11 @@ def main():
     NUM_MACHINES = 5
 
     # Machine Parameters
-    M0 = 50
-    M1 = 25
+    M0 = 100
+    M1 = 50
 
     #M_pca = 100
-    M_lda = 50
+    M_lda = 40
     #sample_size = 5
 
     machine = [LDA() for i in range(NUM_MACHINES)]
