@@ -95,6 +95,8 @@ class LDA:
     def compute_covariance_decomposition(self, matrix):
         A = copy.deepcopy(matrix)
         cov = np.dot(A.T, A)
+        #print('Before PCA projection ... \n')
+        #print('class covariance rank = ',np.linalg.matrix_rank(cov))
         # Compute Eigenvalues and Eigenvectors
         eigenvalues, eigenvectors = np.linalg.eig(cov)
         # Transform Eigenvectors to the Face plane

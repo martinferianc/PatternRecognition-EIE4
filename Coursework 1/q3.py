@@ -5,6 +5,7 @@ import tqdm
 import copy
 from random import randint, sample
 from statistics import mode
+import random
 
 from pre_process_raw import load_data
 from lda import LDA
@@ -47,7 +48,9 @@ def committe_machine_majority_vote(labels):
     return labels_out
 
 def random_parameters(M0,M1,max_size=405):
-    pass
+    vec_index = np.arange(M0).tolist()
+    vec_index.extend(random.sample(range(M0, max_size), M1))
+    return vec_index
 
 def identity_error(labels, labels_correct):
     err = 0
@@ -109,7 +112,7 @@ results
 
 
     '''
-
+    '''
     ###################
     # PCA-LDA BAGGING #
     ###################
@@ -153,10 +156,11 @@ results
     err = identity_error(labels_out,dataset['test_y'])
 
     print('error: ',err)
+    '''
 
-    ###################
-    # PCA-LDA BAGGING #
-    ###################
+    ###################################
+    # PCA-LDA PARAMETER RANDOMISATION #
+    ###################################
 
     # Number of machines
     NUM_MACHINES = 5
@@ -165,20 +169,19 @@ results
     M0 = 50
     M1 = 25
 
-    M_pca = 100
+    #M_pca = 100
     M_lda = 50
-    sample_size = 5
+    #sample_size = 5
 
     machine = [LDA() for i in range(NUM_MACHINES)]
 
     for i in range(NUM_MACHINES):
-        # Randomly sample training data TODO try stratified and un-stratified
-        #sample_index = sample_rnd(dataset['train_y'],sample_size)
-        sample_index = sample_stratified(dataset['train_y'],sample_size)
+        # Choose random eigenvectors for PCA
+        M_pca = random_parameters(M0,M1,max_size=(len(dataset['train_y'])-1))
 
         # assign dataset for machine
-        machine[i].dataset['train_x'] = copy.deepcopy(dataset['train_x'][:,sample_index])
-        machine[i].dataset['train_y'] = copy.deepcopy(dataset['train_y'][sample_index])
+        machine[i].dataset['train_x'] = copy.deepcopy(dataset['train_x'])
+        machine[i].dataset['train_y'] = copy.deepcopy(dataset['train_y'])
 
         machine[i].dataset['test_x'] = copy.deepcopy(dataset['test_x'])
         machine[i].dataset['test_y'] = copy.deepcopy(dataset['test_y'])
@@ -192,7 +195,7 @@ results
     labels =  [[] for i in range(NUM_MACHINES)]
 
     for i in range(NUM_MACHINES):
-        machine[i].run_pca_lda()
+        machine[i].run_pca_lda(m_pca_type=1)
         _, labels[i] = machine[i].run_nn_classifier()
 
     # get committee machine output
