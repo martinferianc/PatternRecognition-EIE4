@@ -98,7 +98,7 @@ def main():
     # Load dataset
     dataset = load_data()
 
-    '''
+
 
     ##############
     # BASIC TEST #
@@ -110,14 +110,14 @@ def main():
     lda.run_setup()
 
     # Set hyper parameters
-    lda.M_pca = 100
-    lda.M_lda = 50
+    lda.M_pca = 143
+    lda.M_lda = 47
 
     # Run
     lda.run_pca_lda()
     lda.run_nn_classifier()
 
-    '''
+
 
     '''
     ######################
@@ -125,11 +125,14 @@ def main():
     ######################
 
     # Evaluate for different M_pca
-    M_pca = [5,20,50,100]
-    M_lda = [5,20,50,100]
+    M_pca = np.arange(1,400,5)
+    M_lda = np.arange(1,400,5)
+    for m_lda in M_lda:
+        for m_pca in M_pca:
 
-    for m_pca in M_pca:
-        for m_lda in M_lda:
+            if m_lda > m_pca:
+                continue
+
             # Setup
             lda = LDA()
             lda.dataset = copy.deepcopy(dataset)
@@ -138,11 +141,12 @@ def main():
             # Set hyper parameters
             lda.M_pca = m_pca
             lda.M_lda = m_lda
-results
+
             # Run
             lda.run_pca_lda()
-            lda.run_nn_classifier()
+            err,_ = lda.run_nn_classifier()
 
+            print("M PCA: {}, M LDA: {}, ERROR: {}".format(m_pca,m_lda,err))
 
     '''
 

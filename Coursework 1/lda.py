@@ -34,6 +34,19 @@ class LDA:
         if LOAD:
             self.get_dataset(dataset_filename)
 
+    def get_normal_dataset(self):
+        data = copy.deepcopy(self.dataset['train_x'])
+
+        for i in range(data.shape[1]):
+            label = self.dataset['train_y'][i][0]
+            print(label)
+            print(data[:,i].shape)
+            print(self.train_class_mean[label].shape)
+
+            data[:,i] = data[:,i] - self.train_class_mean[ label ]
+
+        return data
+
     def run_setup(self):
         self.split_classes()
         self.get_mean()
@@ -45,6 +58,7 @@ class LDA:
         # get within-class mean
         for label in self.train_class_data:
             self.train_class_mean[label] = copy.deepcopy(self.train_class_data[label]).mean(axis=1).reshape(-1,1)
+        print(self.train_class_mean[1].shape)
 
     def split_classes(self):
         # Get all class labels
@@ -103,13 +117,13 @@ class LDA:
 
     def compute_covariance_decomposition(self, matrix):
         A = copy.deepcopy(matrix)
-        cov = np.dot(A.T, A)
+        cov = (1/matrix.shape[0]) * np.dot(A.T, A)
         #print('Before PCA projection ... \n')
         #print('class covariance rank = ',np.linalg.matrix_rank(cov))
         # Compute Eigenvalues and Eigenvectors
         eigenvalues, eigenvectors = np.linalg.eig(cov)
         # Transform Eigenvectors to the Face plane
-        eigenvectors = copy.deepcopy(np.matmul(A,eigenvectors))
+        eigenvectors = copy.deepcopy(np.dot(A,eigenvectors))
         # Normalise Eigenvectors
         eigenvectors = eigenvectors / np.linalg.norm(eigenvectors,axis=0)
         # return eigenvectors and eigenvalues
@@ -131,14 +145,15 @@ class LDA:
     def get_pca(self, M_pca):
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
         eigenvalues, eigenvectors = self.compute_covariance_decomposition(copy.deepcopy(self.dataset['train_x']) - self.total_mean)
+        print((self.dataset['train_x'] - self.total_mean).mean(axis=1).reshape(-1,1))
         # set M eigenvectors to be w_pca
         self.w_pca = copy.deepcopy(eigenvectors[:,:min(M_pca,eigenvectors.shape[1])])
         return self.w_pca
 
     def project_matrix(self,matrix,vec):
-        return np.matmul(
+        return np.dot(
             copy.deepcopy(vec).T,
-            np.matmul(
+            np.dot(
                 copy.deepcopy(matrix),
                 copy.deepcopy(vec)))
 
@@ -153,21 +168,18 @@ class LDA:
         if m_pca_type == 1:
             self.w_pca = copy.deepcopy(pca_eigenvectors[:,self.M_pca])
 
-
-        w_pca_tmp = copy.deepcopy(self.w_pca)
-
         # Calculate covariance matrices
         class_covariance = []
         class_mean_covariance = []
 
         # Within Class variance
         for key in tqdm(self.train_class_data):
-            class_covariance.append(self.compute_covariance(copy.deepcopy(self.train_class_data[key]) - self.train_class_mean[key]))
+            class_covariance.append( self.compute_covariance( copy.deepcopy(self.train_class_data[key]) - self.train_class_mean[key]) )
         class_covariance = sum(class_covariance)
 
         # Between class seperation
         for key in tqdm(self.train_class_mean):
-            class_mean_covariance.append(self.compute_covariance(copy.deepcopy(self.total_mean) - self.train_class_mean[key]))
+            class_mean_covariance.append(self.compute_covariance(copy.deepcopy(self.total_mean) - self.train_class_mean[key])   * self.train_class_data[key].shape[1] )
         class_mean_covariance = sum(class_mean_covariance)
 
         # get rank of matrices
@@ -178,13 +190,15 @@ class LDA:
         # Project covariance matrices to PCA space
         class_covariance        = self.project_matrix(class_covariance, self.w_pca)
         class_mean_covariance   = self.project_matrix(class_mean_covariance, self.w_pca)
+        #class_covariance        = class_covariance.dot(self.w_pca)
+        #class_mean_covariance   = class_mean_covariance.dot(self.w_pca)
 
         #print('\n\nAfter PCA projection ... \n')
         #print('class covariance rank = ',np.linalg.matrix_rank(class_covariance))
         #print('class mean covariance rank = ',np.linalg.matrix_rank(class_mean_covariance))
 
         # Calculate optimal projection
-        lda_projection = np.matmul(np.linalg.inv(class_covariance),class_mean_covariance)
+        lda_projection = np.dot(np.linalg.inv(class_covariance),class_mean_covariance)
 
         # Save LDA projection
         _, lda_eigenvectors = self.eigenvalue_decomposition(lda_projection)
@@ -195,7 +209,7 @@ class LDA:
         if m_lda_type == 1:
             self.w_lda = copy.deepcopy(lda_eigenvectors[:,self.M_lda])
 
-        self.w_opt = np.matmul(
+        self.w_opt = np.dot(
             copy.deepcopy(self.w_lda.T),
             copy.deepcopy(self.w_pca.T))
 
@@ -222,18 +236,27 @@ class LDA:
         label_results = []
 
         # project faces
-        projected_test_x  = self.project((copy.deepcopy(self.dataset['test_x']) -self.total_mean),copy.deepcopy(self.w_opt))
-        projected_train_x = self.project((copy.deepcopy(self.dataset['train_x'])-self.total_mean),copy.deepcopy(self.w_opt))
-        #projected_test_x  = np.matmul(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['test_x']))
-        #projected_train_x = np.matmul(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['train_x']))
+        #projected_test_x  = self.project((copy.deepcopy(self.dataset['test_x']) -self.total_mean),copy.deepcopy(self.w_opt))
+        #projected_train_x = self.project((copy.deepcopy(self.dataset['train_x'])-self.total_mean),copy.deepcopy(self.w_opt))
+        projected_test_x  = self.project((copy.deepcopy(self.dataset['test_x'])),copy.deepcopy(self.w_opt))
+        projected_train_x = self.project((copy.deepcopy(self.dataset['train_x'])),copy.deepcopy(self.w_opt))
+        #projected_test_x  = np.dot(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['test_x']))
+        #projected_train_x = np.dot(copy.deepcopy(self.w_opt.T),copy.deepcopy(self.dataset['train_x']))
+        #projected_test_x  = self.project(self.get_normal_dataset(),copy.deepcopy(self.w_opt))
+        #projected_train_x = self.project(self.get_normal_dataset(),copy.deepcopy(self.w_opt))
+        #projected_test_x  = np.dot((copy.deepcopy(self.dataset['test_x'])),copy.deepcopy(self.w_opt))
+        #projected_train_x = np.dot((copy.deepcopy(self.dataset['train_x'])),copy.deepcopy(self.w_opt))
 
-        print(projected_test_x.shape)
+        print(self.w_opt.shape)
+        print(projected_train_x.shape)
+        print(self.dataset['train_y'].shape)
 
         # run nn classifier for every project test face
         for face in tqdm(projected_test_x):
             # get label from nn classifier
             label_results.append(self.nn_classifier(face,projected_train_x,self.dataset['train_y']))
         err = self.identity_error(label_results,self.dataset['test_y'])
+        print(len(label_results))
         print('error: ',err)
         return err , label_results
 
