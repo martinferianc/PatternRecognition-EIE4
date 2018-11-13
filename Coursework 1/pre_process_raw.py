@@ -10,17 +10,26 @@ from pre_process import load_mat, separate_data
 def save_dataset():
 
     # Load the data from the matrix
-    X, Y = load_mat(DATA_DIR + "face.mat")
-    dataset = separate_data((X,Y))
+    X, [y] = load_mat('data/face.mat')
+    dataset = {'train_x': [], 'train_y': [], 'test_x': [], 'test_y': []}
+
+    # Perform train,test split
+    dataset['train_x'], dataset['test_x'], dataset['train_y'], dataset['test_y'] = train_test_split(X.T, y, test_size=0.2,stratify=y)
+
+    # Adjust data orientation
+    dataset['train_x'] = dataset['train_x'].T
+    dataset['test_x']  = dataset['test_x'].T
 
     types = ["training", "test"]
 
     # Save the data so that you do not have to do this over and over again
     i = 0
-    for t in types:
-        np.save(DATA_DIR +"processed_raw/data/" + "{}.npy".format(t),dataset[i][0])
-        np.save(DATA_DIR +"processed_raw/labels/" + "{}.npy".format(t),dataset[i][1])
-        i+=1
+
+    np.save(DATA_DIR +"processed_raw/data/training.npy",dataset['train_x'])
+    np.save(DATA_DIR +"processed_raw/labels/training.npy",dataset['train_y'])
+
+    np.save(DATA_DIR +"processed_raw/data/test.npy",dataset['test_x'])
+    np.save(DATA_DIR +"processed_raw/labels/test.npy",dataset['test_y'])
 
     return dataset
 

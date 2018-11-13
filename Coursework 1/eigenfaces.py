@@ -173,11 +173,11 @@ class EigenFace:
         class_space = {}
         # Seperate into individual classes
         for i in range(self.train_labels.shape[0]):
-            if not self.train_labels[i][0] in class_space:
-                class_space[self.train_labels[i][0]] = {}
-                class_space[self.train_labels[i][0]]['data'] = copy.deepcopy(train_faces[:,[i]])
+            if not self.train_labels[i] in class_space:
+                class_space[self.train_labels[i]] = {}
+                class_space[self.train_labels[i]]['data'] = copy.deepcopy(train_faces[:,[i]])
             else:
-                class_space[self.train_labels[i][0]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i][0]]['data'] ,train_faces[:,[i]])))
+                class_space[self.train_labels[i]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i]]['data'] ,train_faces[:,[i]])))
 
         for a in class_space:
             # compute eigenvectors
@@ -228,5 +228,5 @@ class EigenFace:
         return err , label_results
 
 if __name__ == '__main__':
-  t = EigenFace()
-  t.run_nn_classifier()
+    t = EigenFace()
+    t.run_nn_classifier()
