@@ -46,7 +46,7 @@ def main():
     mean = mean.reshape((46,56))
     mean = np.rot90(mean,3)
     plt.imshow(mean, cmap="gray")
-    plt.savefig("results/q1/mean.png", format="png", transparent=True)
+    plt.savefig("results/q1/mean.png", format="png", transparent=True) # TODO: add eigenface also
 
     D, N = X_train.shape
     start = time.time()

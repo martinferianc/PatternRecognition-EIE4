@@ -11,9 +11,6 @@ from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.neighbors import NearestNeighbors
 
-from sklearn import datasets
-
-
 from pre_process_raw import load_data
 from lda import LDA
 
@@ -130,16 +127,14 @@ def main():
     ######################
 
     # Evaluate for different M_pca
-    M_pca = np.arange(1,400,10)
-    M_lda = np.arange(1,400,10)
+    M_pca = np.arange(75,201,25)
+    M_lda = np.arange(20,76,10)
 
-    x = []
-    y = []
-    z = []
+    err_results = [ [] for m in M_lda ]
+    lda_index = 0
 
     for m_lda in M_lda:
         for m_pca in M_pca:
-
             if m_lda > m_pca:
                 continue
 
@@ -158,17 +153,15 @@ def main():
 
             print("M PCA: {}, M LDA: {}, ERROR: {}".format(m_pca,m_lda,err))
 
-            x.append(m_pca)
-            y.append(m_lda)
-            z.append(err)
+            err_results[lda_index].append(err)
+
+        lda_index += 1
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlabel('M PCA')
-    ax.set_ylabel('M LDA')
-    ax.set_zlabel('ERROR (%)')
-    ax.set_title('Error of PCA-LDA-NN classifier against number of eigenvectors')
-    ax.scatter(x,y,z)
+    legends = [ '' for i in range(len(err_results)) ]
+    for i in range(len(err_results)):
+        legends[i], = plt.plot(M_pca,err_results[i],label='M lda = {}'.format(M_lda[i]))
+    plt.legend(handles=legends)
     plt.show()
 
     '''

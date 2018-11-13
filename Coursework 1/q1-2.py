@@ -6,6 +6,7 @@ import copy
 
 from pre_process import load_data
 from eigenfaces import EigenFace
+from profiling import get_process_memory
 
 def main():
 
@@ -18,8 +19,9 @@ def main():
     #err, y_pred = eigenface.run_reconstruction_classifier()
 
     M = np.arange(0,400,25)
+    M = np.arange(0,200,25)
 
-
+    '''
 
     ########################
     # RECONSTRUCTION ERROR #
@@ -111,28 +113,39 @@ def main():
     plt.savefig("results/q1-2/reconstruction_comparison.png", format="png", transparent=True)
     #plt.show()
 
+    '''
+
     ############
     # NN ERROR #
     ############
 
     err = []
     run_time = []
+    mem_consumption = []
     for m in M:
         print(m)
         eigenface.M = m
         start = time.time()
         err.append(eigenface.run_nn_classifier()[0])
         end = time.time()
+        mem= get_process_memory()
+        mem_consumption.append(mem)
         run_time.append(end-start)
 
     # Run Time
-    plt.figure()
-    plt.plot(M,run_time)
-    plt.ylabel('Run Time (s)')
-    plt.xlabel('Number of Eigenvectors')
-    plt.title('Nearest Neighbour Classifer Run Time')
-    plt.savefig("results/q1-2/nn_run_time.png", format="png", transparent=True)
+    fig, ax1 = plt.subplots()
+    ax1.plot(M,run_time)
+    ax1.set_ylabel('Run Time (s)')
+    ax1.set_xlabel('Number of Eigenvectors')
 
+    # Memory Consumption
+    ax2 = ax1.twinx()
+    ax2.plot(M,mem_consumption,'r')
+    ax2.set_ylabel('Memory Consumption (%)')
+
+    fig.tight_layout()
+    plt.title('Nearest Neighbour Classifer Run Time & Memory Consumption')
+    plt.savefig("results/q1-2/nn_run_time_and_mem.png", format="png", transparent=True)
 
     # Error
     plt.figure()
@@ -182,7 +195,7 @@ def main():
 
     err = []
     run_time = []
-    err_cutoff = np.arange(1,70,5)
+    err_cutoff = np.arange(1,500,20)
     for e in err_cutoff:
         start = time.time()
         err.append(eigenface.run_reconstruction_classifier(err_min=e)[0])
@@ -205,7 +218,7 @@ def main():
     plt.title('Reconstruction Classifer Error')
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
 
-    
+
 
 
     #########################
