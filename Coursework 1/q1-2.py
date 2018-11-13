@@ -19,6 +19,8 @@ def main():
 
     M = np.arange(0,400,25)
 
+
+
     ########################
     # RECONSTRUCTION ERROR #
     ########################
@@ -173,6 +175,7 @@ def main():
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
 
 
+
     ############################################
     # RECONSTRUCTION CLASSIFIER ERROR (CUTOFF) #
     ############################################
@@ -196,11 +199,14 @@ def main():
 
     # Error
     plt.figure()
-    plt.plot(M,err)
+    plt.plot(err_cutoff,err)
     plt.ylabel('Error (MSE)')
     plt.xlabel('Cutoff for Class-wise Reconstruction Error')
     plt.title('Reconstruction Classifer Error')
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
+
+    
+
 
     #########################
     # CLASSIFIER COMPARISON #
@@ -208,9 +214,9 @@ def main():
 
     # Best, reconstruction classifier
     eigenface.M = 2
-    err, y_pred = eigenface.run_reconstruction_classifier()
+    err, y_pred = eigenface.run_reconstruction_classifier(err_min=20)
     # Best, NN classifier
-    eigenface.M = 400
+    eigenface.M = 200
     err, y_pred = eigenface.run_nn_classifier()
 
 

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import time
 import tqdm
 import copy
@@ -104,22 +105,6 @@ def main():
     # Load dataset
     dataset = load_data()
 
-    '''
-    #dataset['train_x'] = dataset['train_x'].T
-    print(dataset['train_y'].ravel().shape)
-
-    pca = PCA(n_components=140)
-    pca = pca.fit(dataset['train_x']).transform(dataset['train_x'])
-
-
-    lda = LinearDiscriminantAnalysis(n_components=50)
-    lda = lda.fit(dataset['train_x'], dataset['train_y'].ravel()).transform(dataset['train_x'])
-
-    prj = (lda.T).dot(pca.T)
-
-    x = ((lda.dot(pca)).T).dot(dataset['train_x'])
-    '''
-
     ##############
     # BASIC TEST #
     ##############
@@ -139,14 +124,19 @@ def main():
 
 
 
-    '''
+
     ######################
     # PCA-LDA EVALUATION #
     ######################
 
     # Evaluate for different M_pca
-    M_pca = np.arange(1,400,5)
-    M_lda = np.arange(1,400,5)
+    M_pca = np.arange(1,400,10)
+    M_lda = np.arange(1,400,10)
+
+    x = []
+    y = []
+    z = []
+
     for m_lda in M_lda:
         for m_pca in M_pca:
 
@@ -168,7 +158,19 @@ def main():
 
             print("M PCA: {}, M LDA: {}, ERROR: {}".format(m_pca,m_lda,err))
 
-    '''
+            x.append(m_pca)
+            y.append(m_lda)
+            z.append(err)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('M PCA')
+    ax.set_ylabel('M LDA')
+    ax.set_zlabel('ERROR (%)')
+    ax.set_title('Error of PCA-LDA-NN classifier against number of eigenvectors')
+    ax.scatter(x,y,z)
+    plt.show()
+
     '''
     ###################
     # PCA-LDA BAGGING #
