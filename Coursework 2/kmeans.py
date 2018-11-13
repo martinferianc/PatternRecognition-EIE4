@@ -109,7 +109,6 @@ def analyse_KMeans():
         results[method] = [labels,error]
 
 
-
     return methods, results, query_labels
 
 

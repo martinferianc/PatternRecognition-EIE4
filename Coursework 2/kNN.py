@@ -7,11 +7,7 @@ from sklearn import neighbors
 # Import matplotlib
 import matplotlib.pyplot as plt
 # Import post process analysing methods
-from post_process import calculate_scores, plot_confusion_matrix
-
 from sklearn.metrics import precision_score
-from sklearn.preprocessing import label_binarize
-
 
 from tqdm import tqdm
 
@@ -26,25 +22,30 @@ def analyse_KNN(k=10):
     """
 
     # Define all the different methods that we are going to try
-    methods = ["Manhattan Distance", "Euclidian Distance"]
+    methods = ["Manhattan Distance", "Euclidian Distance", "PCA-LDA"]
     results = {}
-    for method in methods:
-        all_data = load_data()
 
-        training_data = all_data[0]
+    all_data = load_data()
+    training_data = all_data[0]
+
+    training_labels = training_data[1]
+    training_features = training_data[0]
+    training_camIds = training_data[2]
+
+    FCD = None
+
+
+    for method in methods:
         query_data = all_data[1]
         gallery_data = all_data[2]
 
         query_labels = query_data[1]
-        training_labels = training_data[1]
         gallery_labels = gallery_data[1]
 
         query_features = query_data[0]
-        training_features = training_data[0]
         gallery_features = gallery_data[0]
 #
         query_camIds = query_data[2]
-        training_camIds = training_data[2]
         gallery_camIds = gallery_data[2]
 
         errors = [0]*k
@@ -67,9 +68,15 @@ def analyse_KNN(k=10):
             selected_gallery_labels = np.array(selected_gallery_labels)
             clf = None
             if method == "Manhattan Distance":
-                clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform")
+                clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs=4)
+
             elif method == "Euclidian Distance":
-                clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform")
+                clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform",n_jobs=4)
+
+            elif method== "PCA-LDA":
+                clf = neighbors.KNeighborsClassifier(k, metric="mahalanobis",weights="distance",n_jobs=4)
+                selected_gallery_features = FCD.transform(selected_gallery_features)
+                query = FCD.transform(query)
 
             clf.fit(selected_gallery_features, selected_gallery_labels)
             predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
