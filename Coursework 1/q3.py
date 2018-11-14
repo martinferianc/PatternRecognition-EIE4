@@ -64,7 +64,7 @@ def committe_machine_average(labels):
         avg = 0
         for j in range(num_machines):
             avg += labels[j][i]
-        labels_out.append(avg/num_machines)
+        labels_out.append(int(avg/num_machines))
     return labels_out
 
 def committe_machine_weighted_voting(labels,class_sizes):
@@ -102,6 +102,8 @@ def main():
     # Load dataset
     dataset = load_data()
 
+    '''
+
     ##############
     # BASIC TEST #
     ##############
@@ -127,8 +129,8 @@ def main():
     ######################
 
     # Evaluate for different M_pca
-    M_pca = np.arange(75,201,25)
-    M_lda = np.arange(20,76,10)
+    M_pca = np.arange(75,300,10)
+    M_lda = np.arange(20,100,10)
 
     err_results = [ [] for m in M_lda ]
     lda_index = 0
@@ -163,6 +165,8 @@ def main():
         legends[i], = plt.plot(M_pca,err_results[i],label='M lda = {}'.format(M_lda[i]))
     plt.legend(handles=legends)
     plt.show()
+
+    '''
 
     '''
     ###################
@@ -226,12 +230,14 @@ def main():
 
     '''
 
+    '''
+
     ###################################
     # PCA-LDA PARAMETER RANDOMISATION #
     ###################################
 
     # Number of machines
-    NUM_MACHINES = 5
+    NUM_MACHINES = 15
 
     # Machine Parameters
     M0 = 100
@@ -277,6 +283,113 @@ def main():
     err = identity_error(labels_out,dataset['test_y'])
 
     print('error(average): ',err)
+
+    '''
+
+    ############################
+    # ENSEMBLE HYPERPARAMETERS #
+    ############################
+
+    # Number of machines
+    NUM_MACHINES = 50
+
+    # List of errors
+    err = [ [0,0] for i in range(NUM_MACHINES) ]
+    err = [
+        [0 for i in range(NUM_MACHINES) ],
+        [0 for i in range(NUM_MACHINES) ]
+    ]
+
+    # HIGH CORRELATION #
+
+    # Machine Parameters
+    M0 = 125
+    M1 = 25
+
+    #M_pca = 100
+    M_lda = 40
+    #sample_size = 5
+
+    machine = [LDA() for i in range(NUM_MACHINES)]
+
+    for i in range(NUM_MACHINES):
+        # Choose random eigenvectors for PCA
+        M_pca = random_parameters(M0,M1,max_size=(len(dataset['train_y'])-1))
+
+        # assign dataset for machine
+        machine[i].dataset['train_x'] = copy.deepcopy(dataset['train_x'])
+        machine[i].dataset['train_y'] = copy.deepcopy(dataset['train_y'])
+
+        machine[i].dataset['test_x'] = copy.deepcopy(dataset['test_x'])
+        machine[i].dataset['test_y'] = copy.deepcopy(dataset['test_y'])
+
+        # Setup each machine
+        machine[i].run_setup()
+        machine[i].M_pca = M_pca
+        machine[i].M_lda = M_lda
+
+    # variable to store label results
+    labels =  [[] for i in range(NUM_MACHINES)]
+
+    for i in range(NUM_MACHINES):
+        machine[i].run_pca_lda(m_pca_type=1)
+        _, labels[i] = machine[i].run_nn_classifier()
+
+    # get committee machine output
+    for i in range(NUM_MACHINES):
+        labels_out = committe_machine_majority_vote(labels[:(i+1)])
+        err[0][i]  = identity_error(labels_out,dataset['test_y'])
+
+    # LOW CORRELATION #
+
+    # Machine Parameters
+    M0 = 25
+    M1 = 125
+
+    #M_pca = 100
+    M_lda = 40
+    #sample_size = 5
+
+    machine = [LDA() for i in range(NUM_MACHINES)]
+
+    for i in range(NUM_MACHINES):
+        # Choose random eigenvectors for PCA
+        M_pca = random_parameters(M0,M1,max_size=(len(dataset['train_y'])-1))
+
+        # assign dataset for machine
+        machine[i].dataset['train_x'] = copy.deepcopy(dataset['train_x'])
+        machine[i].dataset['train_y'] = copy.deepcopy(dataset['train_y'])
+
+        machine[i].dataset['test_x'] = copy.deepcopy(dataset['test_x'])
+        machine[i].dataset['test_y'] = copy.deepcopy(dataset['test_y'])
+
+        # Setup each machine
+        machine[i].run_setup()
+        machine[i].M_pca = M_pca
+        machine[i].M_lda = M_lda
+
+    # variable to store label results
+    labels =  [[] for i in range(NUM_MACHINES)]
+
+    for i in range(NUM_MACHINES):
+        machine[i].run_pca_lda(m_pca_type=1)
+        _, labels[i] = machine[i].run_nn_classifier()
+
+    # get committee machine output
+    for i in range(NUM_MACHINES):
+        labels_out = committe_machine_majority_vote(labels[:(i+1)])
+        err[1][i]  = identity_error(labels_out,dataset['test_y'])
+
+    plt.figure()
+    plt.title('Comparison of Different Comittee Machines')
+    plt.xlabel('Number of Machines')
+    plt.ylabel('Error (%)')
+    plt.plot(range(NUM_MACHINES),err[0], label="High Machine Correlation")
+    plt.plot(range(NUM_MACHINES),err[1], label="Low Machine Correlation")
+    plt.legend()
+    plt.savefig('results/q3/num_machines_eval.png',
+                format='png', transparent=True)
+
 
 if __name__ == '__main__':
     main()

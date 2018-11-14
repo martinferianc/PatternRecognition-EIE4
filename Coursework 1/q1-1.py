@@ -146,6 +146,10 @@ def main():
 
     plt.savefig("results/q1/eigenfaces.png", format="png", transparent=True)
 
+
+    # Plot mean and eigenface together
+
+
     plt.close()
 
 
