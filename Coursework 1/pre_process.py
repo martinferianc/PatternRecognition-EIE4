@@ -86,8 +86,16 @@ def separate_data(data, train = 0.8):
         X_val, y_val : validation data
     mean: numpy array
     """
-    X,y = data
+    X,[y] = data
+    X_train, X_test, y_train, y_test = train_test_split(X.T, y, test_size=0.2,stratify=y)
 
+    # Adjust data orientation
+    X_train = X_train.T
+    X_test  = X_test.T
+
+    data = [[X_train, y_train], [X_test, y_test]]
+
+    '''
     np.random.seed(13)
 
     D, N = X.shape
@@ -117,6 +125,7 @@ def separate_data(data, train = 0.8):
 
     data = [[X_train, y_train], [X_test, y_test]]
 
+    '''
     return data
 
 def compute_covariance(data):

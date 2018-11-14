@@ -46,7 +46,7 @@ def main():
     mean = mean.reshape((46,56))
     mean = np.rot90(mean,3)
     plt.imshow(mean, cmap="gray")
-    plt.savefig("results/q1/mean.png", format="png", transparent=True)
+    plt.savefig("results/q1/mean.png", format="png", transparent=True) # TODO: add eigenface also
 
     D, N = X_train.shape
     start = time.time()
@@ -145,6 +145,10 @@ def main():
         axarr[1,i].imshow(img, cmap=plt.cm.Greys)
 
     plt.savefig("results/q1/eigenfaces.png", format="png", transparent=True)
+
+
+    # Plot mean and eigenface together
+
 
     plt.close()
 

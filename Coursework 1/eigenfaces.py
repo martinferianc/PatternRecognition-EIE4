@@ -50,6 +50,19 @@ class EigenFace:
                 label_index = i
         return self.train_labels[label_index]
 
+    def nn_classifier_index(self, face):
+        nn = copy.deepcopy(self.train_facespace[0])
+        label_index = 0
+        min_distance =  np.linalg.norm(face - nn)
+        for i in range(1,self.train_facespace.shape[0]):
+            #get distance between
+            curr_distance = np.linalg.norm(face - self.train_facespace[i])
+            if curr_distance < min_distance:
+                nn = self.train_facespace[i]
+                min_distance = curr_distance
+                label_index = i
+        return label_index
+
     # Sort and select the M largest eigenvalues and eigenvectors
     def select_M_eigenvectors(self, M, plot=False):
         if plot:
@@ -173,11 +186,11 @@ class EigenFace:
         class_space = {}
         # Seperate into individual classes
         for i in range(self.train_labels.shape[0]):
-            if not self.train_labels[i][0] in class_space:
-                class_space[self.train_labels[i][0]] = {}
-                class_space[self.train_labels[i][0]]['data'] = copy.deepcopy(train_faces[:,[i]])
+            if not self.train_labels[i] in class_space:
+                class_space[self.train_labels[i]] = {}
+                class_space[self.train_labels[i]]['data'] = copy.deepcopy(train_faces[:,[i]])
             else:
-                class_space[self.train_labels[i][0]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i][0]]['data'] ,train_faces[:,[i]])))
+                class_space[self.train_labels[i]]['data']  = copy.deepcopy(np.hstack((class_space[self.train_labels[i]]['data'] ,train_faces[:,[i]])))
 
         for a in class_space:
             # compute eigenvectors
@@ -228,5 +241,5 @@ class EigenFace:
         return err , label_results
 
 if __name__ == '__main__':
-  t = EigenFace()
-  t.run_nn_classifier()
+    t = EigenFace()
+    t.run_nn_classifier()
