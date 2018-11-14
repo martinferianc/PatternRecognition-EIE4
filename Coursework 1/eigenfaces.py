@@ -50,6 +50,19 @@ class EigenFace:
                 label_index = i
         return self.train_labels[label_index]
 
+    def nn_classifier_index(self, face):
+        nn = copy.deepcopy(self.train_facespace[0])
+        label_index = 0
+        min_distance =  np.linalg.norm(face - nn)
+        for i in range(1,self.train_facespace.shape[0]):
+            #get distance between
+            curr_distance = np.linalg.norm(face - self.train_facespace[i])
+            if curr_distance < min_distance:
+                nn = self.train_facespace[i]
+                min_distance = curr_distance
+                label_index = i
+        return label_index
+
     # Sort and select the M largest eigenvalues and eigenvectors
     def select_M_eigenvectors(self, M, plot=False):
         if plot:

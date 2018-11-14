@@ -184,10 +184,10 @@ class LDA:
     # IMPORTANT : Equivalent of 'fit' function
     def run_pca_lda(self,m_pca_type=0,m_lda_type=0): # 0 - single value, 1 - list
 
-        if m_pca_type == 0:
-            assert(self.M_pca < self.dataset['train_x'].shape[1]), 'M PCA must be less than N'
-        if m_lda_type == 0:
-            assert(self.M_lda <= self.M_pca), ' M LDA can\'t be greater than M PCA'
+        #if m_pca_type == 0:
+        #    assert(self.M_pca < self.dataset['train_x'].shape[1]), 'M PCA must be less than N'
+        #if m_lda_type == 0:
+        #    assert(self.M_lda <= self.M_pca), ' M LDA can\'t be greater than M PCA'
 
         # PCA
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
