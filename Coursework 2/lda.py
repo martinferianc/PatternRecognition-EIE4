@@ -6,6 +6,23 @@ import copy
 import os
 
 def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
+    """
+    Sorts eigenvalues and eigenvectors
+    from the biggest to the lowest in
+    a descending order respectively
+
+    Parameters
+    ----------
+    eigenvalues: numpy array
+    eigenvectors: numpy array
+
+    Returns
+    -------
+    eigenvalues: numpy array
+        Sorted now
+    eigenvectors: numpy array
+        Sorted now
+    """
     p = np.argsort(np.abs(eigenvalues))[::-1]
     eigenvalues_ = copy.deepcopy(eigenvalues[p])
     eigenvectors_ = copy.deepcopy(np.real(eigenvectors[:,p]))
@@ -229,11 +246,11 @@ class LDA:
             return
 
         N = self.dataset['train_x'].shape[1]
-        self.M_pca = int(0.5*N)
+        self.M_pca = int(0.75*N)
         self.M_lda = int(0.25*N)
 
-        assert(self.M_pca < self.dataset['train_x'].shape[1]), 'M PCA must be less than N'
-        assert(self.M_lda <= self.M_pca), ' M LDA can\'t be greater than M PCA'
+        assert(self.M_pca < self.dataset['train_x'].shape[1])
+        assert(self.M_lda <= self.M_pca)
 
         # PCA
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
@@ -276,7 +293,7 @@ class LDA:
         print("Computing LDA eigenvectors...")
 
         # Calculate optimal projection
-        lda_projection = np.dot(np.linalg.pinv(class_covariance),class_mean_covariance)
+        lda_projection = np.dot(np.linalg.inv(class_covariance),class_mean_covariance)
 
         # Save LDA projection
         _, lda_eigenvectors = self.eigenvalue_decomposition(lda_projection)

@@ -7,7 +7,6 @@ from sklearn.cluster import KMeans
 # Import matplotlib
 import matplotlib.pyplot as plt
 # Import post process analysing methods
-from post_process import calculate_scores, plot_confusion_matrix
 
 from tqdm import tqdm
 
@@ -19,8 +18,12 @@ from collections import Counter
 def analyse_KMeans():
     """
     Analyse and collect all the different results
-    with respect to different kNNs tests
+    with respect to different KMeans
+
+    Note that k is initalized as the number of classes in the test set otherwise
+    it would not make sense to do classification at all
     """
+
 
     # Define all the different methods that we are going to try
     methods = ["normal"]

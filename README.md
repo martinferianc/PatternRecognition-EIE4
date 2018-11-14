@@ -7,7 +7,9 @@ Supplementary repository for Pattern Recognition EE4-68 at Imperial College Lond
 ### Coursework on Representation and Distance Metrics Learning
 This work looks at finding and demonstrating the parameters that lead to optimal performance and validation of the parameters by presenting supporting results.
 
-We performed k-nearest neighbour (kNN) and k-Means retrieval experiments according to standard practices in pattern recognition. We used retrieval error (i.e. @rank1, @rank10) as the performance metric to evaluate different methods. Our baseline approach is kNN on provided features. We used different distance metric learning methods to improve a baseline performance.
+We performed k-nearest neighbour (kNN) and k-Means retrieval experiments according to standard practices in pattern recognition. We used retrieval error (i.e. @rank1, @rank10) as the performance metric to evaluate different methods. Our baseline approach is kNN on provided features.
+
+Our improved approach consisted of first doing dimensionality reduction through PCA, followed by a discrimination by LDA. Then we used kNN and a cosine metric to measure the distance which was inversely weighted depending on the location of the points.
 
 This project was a part of coursework for module EE4-68 Machine Learning at Imperial College London, [Link](http://intranet.ee.ic.ac.uk/electricalengineering/eecourses_t4/course_content.asp?c=EE4-68&s=E3#start).
 
@@ -43,12 +45,12 @@ python3 Coursework\ 2/kmeans.py
 python3 Coursework\ 2/kNN.py
 ```
 
-and the figures will be found in `results/<Method>/`
+and the figures will be found in `results/<Method>/` or printed in your terminal.
 
 ## Authors:
 
-- Martin Ferianc
+- Martin Ferianc (mf2915@ic.ac.uk)
 
-- Alexander Alex Montgomerie-Corcoran
+- Alexander Montgomerie-Corcoran ()
 
 2018
