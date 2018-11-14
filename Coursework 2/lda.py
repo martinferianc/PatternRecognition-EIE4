@@ -44,22 +44,52 @@ class LDA:
         self.M_lda = 0
 
 
-    # splits dataset between classes and gets mean
     def run_setup(self):
+        """
+        Splits daaset between classes and gets their mean
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         self.split_classes()
         self.get_mean()
 
-    # gets both class mean and total mean
     def get_mean(self):
-        # get Total Mean
+        """
+        Gets both the class mean and the total mean
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        # Get Total Mean
         self.total_mean = copy.deepcopy(self.dataset['train_x']).mean(axis=1).reshape(-1,1)
 
-        # get within-class mean
+        # Get within-class mean
         for label in self.train_class_data:
             self.train_class_mean[label] = copy.deepcopy(self.train_class_data[label]).mean(axis=1).reshape(-1,1)
 
-    # seperates classes
     def split_classes(self):
+        """
+        Splits and separates the classes
+
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        None
+        """
+
         # Get all class labels
         labels = np.unique(self.dataset['train_y'])
 
@@ -71,63 +101,129 @@ class LDA:
                 indices.append(i) if (self.dataset['train_y'][i] == label) else 0
 
             # Select class from those indices
-            #print(indices)
             self.train_class_data[label] = copy.deepcopy(self.dataset['train_x'][:,indices])
 
-    # simple function to get size of each class in training set
-    def get_class_sizes(self):
-        class_sizes = {}
 
-        for label in self.train_class_data:
-            class_sizes[label] = self.train_class_data[label].shape[1]
-
-        return class_sizes
-
-    # helper function to compute efficient co-varaince eigenvalue decomposition
     def compute_covariance_decomposition(self, matrix):
+        """
+        Helper function to compute efficient co-varaince eigenvalue decomposition
+
+        Parameters
+        ----------
+        matrix: matrix
+            A numpy matrix
+
+        Returns
+        -------
+        Eigenvalues, Eigenvectors: matrix
+            Eigenvalues and Eigenvectors for the input matrix
+        """
         A = copy.deepcopy(matrix)
         cov = (1/matrix.shape[0]) * np.dot(A.T, A)
-        #print('Before PCA projection ... \n')
-        #print('class covariance rank = ',np.linalg.matrix_rank(cov))
-        # Compute Eigenvalues and Eigenvectors
         eigenvalues, eigenvectors = np.linalg.eig(cov)
-        # Transform Eigenvectors to the Face plane
         eigenvectors = copy.deepcopy(np.dot(A,eigenvectors))
-        # Normalise Eigenvectors
         eigenvectors = eigenvectors / np.linalg.norm(eigenvectors,axis=0)
-        # return eigenvectors and eigenvalues
         return sort_eigenvalues_eigenvectors( eigenvalues, eigenvectors )
 
-    # helper function to get eigenvalue decomposition of matrix
     def eigenvalue_decomposition(self, matrix):
+        """
+        Helper function to get eigenvalue decomposition of matrix
+
+        Parameters
+        ----------
+        matrix: matrix
+            A numpy matrix
+
+        Returns
+        -------
+        Eigenvalues, Eigenvectors: matrix
+            Eigenvalues and Eigenvectors for the input matrix
+        """
         A = copy.deepcopy(matrix)
+
         # Compute Eigenvalues and Eigenvectors
+
         eigenvalues, eigenvectors = np.linalg.eig(A)
-        # return eigenvectors and eigenvalues
+
+        # Return eigenvectors and eigenvalues
         return sort_eigenvalues_eigenvectors( eigenvalues, eigenvectors )
 
-    # helper function to compute co-variance
     def compute_covariance(self,matrix):
+        """
+        Helper function to compute the naive covariance for PCA
+
+        Parameters
+        ----------
+        matrix: matrix
+            A numpy matrix
+
+        Returns
+        -------
+        matrix : matrix
+            Dot product of the matrix A*A'
+        """
         A = copy.deepcopy(matrix)
         return np.dot(A,A.T)
 
 
     def project_matrix(self,matrix,vec):
+        """
+        Helper function to do a projection into a sub-space
+
+        Parameters
+        ----------
+        matrix: matrix
+            A numpy matrix
+
+        Returns
+        -------
+        matrix: matrix
+            Projected matrix through input vector - vec
+        """
         return np.dot(
             copy.deepcopy(vec).T,
             np.dot(
                 copy.deepcopy(matrix),
                 copy.deepcopy(vec)))
 
-    # IMPORTANT : function to do PCA-LDA transformation
     def transform(self,X):
+        """
+        Helper function to do a projection into a sub-space using optimal weight
+        vectors
+
+        Parameters
+        ----------
+        X: matrix
+            A numpy matrix
+
+        vec: array
+            Numpy projection array
+
+        Returns
+        -------
+        matrix: matrix
+            Projected matrix through input vector - vec
+        """
         return copy.deepcopy(np.matmul(
                 copy.deepcopy(X.T),
                 copy.deepcopy(self.w_opt)
             ))
 
-    # IMPORTANT : Equivalent of 'fit' function
-    def run_pca_lda(self,m_pca_type=0,m_lda_type=0): # 0 - single value, 1 - list
+    def fit(self):
+        """
+        Do the training on the sample data
+        1. Computes eigenvectors for the input through PCA
+        2. Computes Scatter matrices for LDA
+        3. Computes eigenvectors for LDA
+        4. Combines theim into optimal wector
+
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        None
+        """
         if os.path.exists(os.path.join("w.npy")):
             self.w_opt = np.load("w.npy")
             return
@@ -136,10 +232,8 @@ class LDA:
         self.M_pca = int(0.5*N)
         self.M_lda = int(0.25*N)
 
-        if m_pca_type == 0:
-            assert(self.M_pca < self.dataset['train_x'].shape[1]), 'M PCA must be less than N'
-        if m_lda_type == 0:
-            assert(self.M_lda <= self.M_pca), ' M LDA can\'t be greater than M PCA'
+        assert(self.M_pca < self.dataset['train_x'].shape[1]), 'M PCA must be less than N'
+        assert(self.M_lda <= self.M_pca), ' M LDA can\'t be greater than M PCA'
 
         # PCA
         # get eigenvalue decomposition of total covariance matrix (X - Xbar)
@@ -147,7 +241,7 @@ class LDA:
 
         _, pca_eigenvectors = self.compute_covariance_decomposition(copy.deepcopy(self.dataset['train_x']) - self.total_mean)
 
-        # set M eigenvectors to be w_pca
+        # Set M eigenvectors to be w_pca
         if m_pca_type == 0:
             self.w_pca = copy.deepcopy(pca_eigenvectors[:,:min(self.M_pca,pca_eigenvectors.shape[1])])
         if m_pca_type == 1:
@@ -174,22 +268,20 @@ class LDA:
             class_mean_covariance.append(self.compute_covariance(copy.deepcopy(self.total_mean).reshape(-1,1) - self.train_class_mean[key].reshape(-1,1)) * self.train_class_data[key].shape[1] )
         class_mean_covariance = np.array(sum(class_mean_covariance))
         class_mean_covariance = 0.5*(class_mean_covariance + class_mean_covariance.T)
-        print(np.linalg.det(class_mean_covariance))
+
         # Project covariance matrices to PCA space
         class_covariance        = self.project_matrix(class_covariance, self.w_pca)
         class_mean_covariance   = self.project_matrix(class_mean_covariance, self.w_pca)
 
         print("Computing LDA eigenvectors...")
+
         # Calculate optimal projection
         lda_projection = np.dot(np.linalg.pinv(class_covariance),class_mean_covariance)
 
         # Save LDA projection
         _, lda_eigenvectors = self.eigenvalue_decomposition(lda_projection)
 
-        if m_lda_type == 0:
-            self.w_lda = copy.deepcopy(lda_eigenvectors[:,:min(self.M_lda,lda_eigenvectors.shape[1])])
-        if m_lda_type == 1:
-            self.w_lda = copy.deepcopy(lda_eigenvectors[:,self.M_lda])
+        self.w_lda = copy.deepcopy(lda_eigenvectors[:,:min(self.M_lda,lda_eigenvectors.shape[1])])
 
         self.w_opt = np.dot(
             copy.deepcopy(self.w_lda.T),
@@ -198,29 +290,24 @@ class LDA:
         self.w_opt = self.w_opt.T
         np.save("w.npy",self.w_opt)
 
-    def project(self,img,vec):
-        return copy.deepcopy(np.dot(copy.deepcopy(img.T), copy.deepcopy(vec)))
-
 if __name__ == '__main__':
-
-    # EXAMPLE SCRIPT
-
-    # load your dataset
-    dataset = load_data() # contains train_x, train_y, test_x, test_y
+    # Example Script
+    # Load your dataset
+    dataset = load_data()
 
     lda = LDA() # initialise lda class
     lda.dataset['train_x'] = dataset['train_x']
     lda.dataset['train_y'] = dataset['train_y']
 
-    # setup the class seperation and class means
+    # Setup the class seperation and class means
     lda.run_setup()
 
     # Select number of vectors for PCA and LDA
-    lda.M_pca = 150 # TODO: change for dataset
-    lda.M_lda = 40  # TODO: change for datset
+    lda.M_pca = 150
+    lda.M_lda = 40
 
-    # fit the subspace
-    lda.run_pca_lda()
+    # Fit the subspace
+    lda.fit()
 
-    # get the transformed data
+    # Get the transformed data
     test_x_transform = lda.transform(dataset['test_x'])

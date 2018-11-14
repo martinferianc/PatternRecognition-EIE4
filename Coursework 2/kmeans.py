@@ -26,23 +26,25 @@ def analyse_KMeans():
     methods = ["normal"]
     results = {}
     for method in methods:
+
+        # Split and load the data
         all_data = load_data()
 
         training_data = all_data[0]
         query_data = all_data[1]
         gallery_data = all_data[2]
 
-        query_labels = query_data[1]#[:100]
-        training_labels = training_data[1]#[:100]
-        gallery_labels = gallery_data[1]#[:100]
+        query_labels = query_data[1]
+        training_labels = training_data[1]
+        gallery_labels = gallery_data[1]
 
-        query_features = query_data[0]#[:100,:]
-        training_features = training_data[0]#[:100,:]
-        gallery_features = gallery_data[0]#[:100,:]
+        query_features = query_data[0]
+        training_features = training_data[0]
+        gallery_features = gallery_data[0]
 
-        query_camIds = query_data[2]#[:100]
-        training_camIds = training_data[2]#[:100]
-        gallery_camIds = gallery_data[2]#[:100]
+        query_camIds = query_data[2]
+        training_camIds = training_data[2]
+        gallery_camIds = gallery_data[2]
 
         error = 0
         labels = []
@@ -51,7 +53,6 @@ def analyse_KMeans():
         selected_gallery_labels = []
 
         print("Pre-processing data...")
-
         for i in tqdm(range(len(query_features))):
             query = query_features[i,:]
             query_label = query_labels[i]
@@ -113,4 +114,4 @@ def analyse_KMeans():
 
 
 if __name__ == '__main__':
-    analyse_KMeans()
+    print(analyse_KMeans())

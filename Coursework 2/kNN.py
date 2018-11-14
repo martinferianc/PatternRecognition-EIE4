@@ -17,11 +17,24 @@ from tqdm import tqdm
 from collections import Counter
 
 
-
 def analyse_KNN(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests
+
+    Parameters
+    ----------
+    k: int
+        How many neighbeours should we consider
+
+    Returns
+    -------
+    methods: list
+        Which methods were considered
+    results: list of lists
+        Measured results which are going to be later analysed
+    true_labels: list
+        True test labels
     """
 
     # Define all the different methods that we are going to try
@@ -35,17 +48,19 @@ def analyse_KNN(k=10):
     training_features = training_data[0]
     training_camIds = training_data[2]
 
-    lda = LDA() # initialise lda class
+    # Initialize LDA-PCA decomposition
+    lda = LDA()
     lda.dataset['train_x'] = training_features.T
     lda.dataset['train_y'] = training_labels
 
-    # setup the class seperation and class means
+    # Setup the class separation
     lda.run_setup()
 
-    # fit the subspace
+    # Fit to the training subspace
     print("Finding W for PCA-LDA transform...")
-    lda.run_pca_lda()
+    lda.fit()
 
+    # Run the classifier for each method
     for method in methods:
         query_data = all_data[1]
         gallery_data = all_data[2]
@@ -56,6 +71,8 @@ def analyse_KNN(k=10):
         query_features = query_data[0]
         gallery_features = gallery_data[0]
 
+        # If the classifier should be advanced we need to change
+        # both the query features as well as gallery features
         if method == "PCA-LDA":
             gallery_features = lda.transform(gallery_features.T)
             query_features = lda.transform(query_features.T)
@@ -81,6 +98,7 @@ def analyse_KNN(k=10):
 
             selected_gallery_features = np.array(selected_gallery_features)
             selected_gallery_labels = np.array(selected_gallery_labels)
+
             clf = None
             if method == "Manhattan Distance":
                 clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs=4)
@@ -122,7 +140,6 @@ def analyse_KNN(k=10):
 if __name__ == '__main__':
     k = 10
     methods, results, true_labels = analyse_KNN(k)
-
 
     for method in methods:
         labels, errors, tops = results[method]
