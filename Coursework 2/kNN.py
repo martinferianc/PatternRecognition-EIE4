@@ -8,6 +8,9 @@ from sklearn import neighbors
 import matplotlib.pyplot as plt
 # Import post process analysing methods
 from sklearn.metrics import precision_score
+from sklearn.neighbors import DistanceMetric
+
+from lda import LDA
 
 from tqdm import tqdm
 
@@ -22,7 +25,7 @@ def analyse_KNN(k=10):
     """
 
     # Define all the different methods that we are going to try
-    methods = ["Manhattan Distance", "Euclidian Distance", "PCA-LDA"]
+    methods = ["PCA-LDA","Manhattan Distance", "Euclidian Distance"]
     results = {}
 
     all_data = load_data()
@@ -32,8 +35,16 @@ def analyse_KNN(k=10):
     training_features = training_data[0]
     training_camIds = training_data[2]
 
-    FCD = None
+    lda = LDA() # initialise lda class
+    lda.dataset['train_x'] = training_features.T
+    lda.dataset['train_y'] = training_labels
 
+    # setup the class seperation and class means
+    lda.run_setup()
+
+    # fit the subspace
+    print("Finding W for PCA-LDA transform...")
+    lda.run_pca_lda()
 
     for method in methods:
         query_data = all_data[1]
@@ -44,7 +55,11 @@ def analyse_KNN(k=10):
 
         query_features = query_data[0]
         gallery_features = gallery_data[0]
-#
+
+        if method == "PCA-LDA":
+            gallery_features = lda.transform(gallery_features.T)
+            query_features = lda.transform(query_features.T)
+
         query_camIds = query_data[2]
         gallery_camIds = gallery_data[2]
 
@@ -74,9 +89,7 @@ def analyse_KNN(k=10):
                 clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform",n_jobs=4)
 
             elif method== "PCA-LDA":
-                clf = neighbors.KNeighborsClassifier(k, metric="mahalanobis",weights="distance",n_jobs=4)
-                selected_gallery_features = FCD.transform(selected_gallery_features)
-                query = FCD.transform(query)
+                clf = neighbors.KNeighborsClassifier(k, algorithm="auto", metric="cosine",weights="distance",n_jobs=4)
 
             clf.fit(selected_gallery_features, selected_gallery_labels)
             predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
