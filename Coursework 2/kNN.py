@@ -4,13 +4,16 @@ from pre_process import load_data
 import numpy as np
 # Import the kNN library
 from sklearn import neighbors
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.decomposition import PCA
+from sklearn.ensemble import BaggingClassifier
 # Import matplotlib
 import matplotlib.pyplot as plt
 # Import post process analysing methods
 from sklearn.metrics import precision_score
 from sklearn.neighbors import DistanceMetric
 
-from lda import LDA
+#from lda import LDA
 
 from tqdm import tqdm
 
@@ -38,7 +41,7 @@ def analyse_KNN(k=10):
     """
 
     # Define all the different methods that we are going to try
-    methods = ["PCA-LDA","Manhattan Distance", "Euclidian Distance"]
+    methods = ["Cosine"]# ,"Manhattan Distance", "Euclidian Distance"]
     results = {}
 
     all_data = load_data()
@@ -49,16 +52,18 @@ def analyse_KNN(k=10):
     training_camIds = training_data[2]
 
     # Initialize LDA-PCA decomposition
-    lda = LDA()
-    lda.dataset['train_x'] = training_features.T
-    lda.dataset['train_y'] = training_labels
+    pca = PCA(100,whiten=True)
+    training_features = pca.fit_transform(training_features,training_labels)
+    print(training_features.shape)
 
-    # Setup the class separation
-    lda.run_setup()
+    lda = LDA()
+    lda.fit(training_features,training_labels)
+
+
 
     # Fit to the training subspace
     print("Finding W for PCA-LDA transform...")
-    lda.fit()
+    #lda.fit()
 
     # Run the classifier for each method
     for method in methods:
@@ -74,8 +79,10 @@ def analyse_KNN(k=10):
         # If the classifier should be advanced we need to change
         # both the query features as well as gallery features
         if method == "PCA-LDA":
-            gallery_features = lda.transform(gallery_features.T)
-            query_features = lda.transform(query_features.T)
+            gallery_features = pca.transform(gallery_features)
+            query_features = pca.transform(query_features)
+            gallery_features = lda.transform(gallery_features)
+            query_features = lda.transform(query_features)
 
         query_camIds = query_data[2]
         gallery_camIds = gallery_data[2]
@@ -101,19 +108,28 @@ def analyse_KNN(k=10):
 
             clf = None
             if method == "Manhattan Distance":
-                clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs=4)
+                clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs= -1)
 
             elif method == "Euclidian Distance":
-                clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform",n_jobs=4)
+                clf = neighbors.KNeighborsClassifier(k,p=2, weights="uniform",n_jobs= -1)
+
+            elif method == "Cosine":
+                clf = neighbors.KNeighborsClassifier(k, p=2, algorithm="auto",weights="distance",n_jobs=-1)
+
 
             elif method== "PCA-LDA":
-                clf = neighbors.KNeighborsClassifier(k, algorithm="auto", metric="cosine",weights="distance",n_jobs=4)
+                clf = neighbors.KNeighborsClassifier(k, algorithm="auto", metric="cosine",weights="distance",n_jobs=-1)
+                #clf = BaggingClassifier(c, n_estimators=10, random_state=True,
+                #                  warm_start=False, n_jobs= -1)
 
             clf.fit(selected_gallery_features, selected_gallery_labels)
+            predicted_neighbors = None
+            #if method == "PCA-LDA":
+            #    predicted_neighbors = clf.predict(query.reshape(1, -1))
+            #else:
             predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
             predicted_labels = [selected_gallery_labels[l] for l in predicted_neighbors]
-
-            for i in range(len(errors)):
+            for i in range(len(predicted_labels[0])):
                 rank = predicted_labels[0][:i+1]
                 b = Counter(rank)
                 label = b.most_common(1)[0][0]
@@ -127,7 +143,6 @@ def analyse_KNN(k=10):
 
                 if label!=query_label:
                     errors[i]+=1
-
 
         for i in range(len(errors)):
             errors[i]/=len(query_features)
