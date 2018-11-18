@@ -21,6 +21,8 @@ def main():
     M = np.arange(0,401,5)
     #M = np.arange(0,200,25)
 
+    '''
+
     ########################
     # RECONSTRUCTION ERROR #
     ########################
@@ -253,6 +255,8 @@ def main():
     # CLASSIFIER COMPARISON #
     #########################
 
+    '''
+
     # Best, reconstruction classifier
     eigenface.M = 2
     err, y_pred = eigenface.run_reconstruction_classifier(err_min=20)
@@ -263,31 +267,53 @@ def main():
 
     # find wrong classification
     err_index = 0
-    for i in range(3,len(y_pred)):
+
+    for i in range(20,len(y_pred)):
         if not y_pred[i] == dataset[1][1][i]:
             err_index = i
+            break
+
+    for i in range(1,len(y_pred)):
+        if y_pred[i] == dataset[1][1][i]:
+            corr_index = i
             break
 
     correct_face = copy.deepcopy(dataset[1][0][:,[err_index]])
     index = eigenface.nn_classifier_index(eigenface.project_to_face_space(correct_face))
     wrong_face   = copy.deepcopy(dataset[0][0][:,[index]])
 
+    correct_face_2 = copy.deepcopy(dataset[1][0][:,[corr_index]])
+    index = eigenface.nn_classifier_index(eigenface.project_to_face_space(correct_face_2))
+    corr_face   = copy.deepcopy(dataset[0][0][:,[index]])
+
     # plot both faces to compare
     plt.figure()
-    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+    f, ax = plt.subplots(2, 2, sharey=True)
     f.suptitle('PCA-NN wrong classification comparison')
 
-    img = (correct_face + mean).reshape((46,56))
+    img = (correct_face).reshape((46,56))
     img = np.rot90(img,3)
-    ax1.imshow(img, cmap="gray")
-    ax1.axis('off')
-    ax1.set_title('Correct Face')
+    ax[0,0].imshow(img, cmap="gray")
+    ax[0,0].axis('off')
+    ax[0,0].set_title('Input Face')
 
-    img = (wrong_face + mean).reshape((46,56))
+    img = (wrong_face).reshape((46,56))
     img = np.rot90(img,3)
-    ax2.imshow(img, cmap="gray")
-    ax2.axis('off')
-    ax2.set_title('Wrong Prediction')
+    ax[0,1].imshow(img, cmap="gray")
+    ax[0,1].axis('off')
+    ax[0,1].set_title('Wrong Prediction')
+
+    img = (correct_face_2).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[1,0].imshow(img, cmap="gray")
+    ax[1,0].axis('off')
+    ax[1,0].set_title('Input Face')
+
+    img = (corr_face).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[1,1].imshow(img, cmap="gray")
+    ax[1,1].axis('off')
+    ax[1,1].set_title('Correct Prediction')
 
     #plt.title('Comparison of reconstruction')
     plt.savefig("results/q1-2/wrong_nn_classifier.png", format="png", transparent=True)
