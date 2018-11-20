@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from collections import Counter
 
-def weight(x, sigma=0.1):
+def weight(x, sigma=0.01):
     return np.exp(-(x** 2) / 2*(sigma**2))
 
 def vote(x, weights):
@@ -75,16 +75,16 @@ def analyse_KNN_feature_preselection(k=10):
     labels= [None]*k
     tops = [0]*k
 
-    selector = VarianceThreshold(threshold=(.8 * (1 - .8)))
-    training_features = selector.fit_transform(training_features, training_labels)
-    gallery_features = selector.transform(gallery_features)
-    query_features = selector.transform(query_features)
+#    selector = VarianceThreshold(threshold=(.8 * (1 - .8)))
+#    training_features = selector.fit_transform(training_features, training_labels)
+#    gallery_features = selector.transform(gallery_features)
+#    query_features = selector.transform(query_features)
 
-    lda_W = LDA(training_features.T, training_labels)
+#    lda_W = LDA(training_features.T, training_labels)
 
-    training_features = LDA_transform(lda_W,training_features.T)
-    gallery_features = LDA_transform(lda_W,gallery_features.T)
-    query_features = LDA_transform(lda_W,query_features.T)
+#    training_features = LDA_transform(lda_W,training_features.T)
+#    gallery_features = LDA_transform(lda_W,gallery_features.T)
+#    query_features = LDA_transform(lda_W,query_features.T)
 
 
     for i in tqdm(range(len(query_features))):
@@ -95,9 +95,7 @@ def analyse_KNN_feature_preselection(k=10):
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
 
-        clf = neighbors.KNeighborsClassifier(k,algorithm='brute',
-                               metric='mahalanobis',
-                               metric_params={'V': np.cov(selected_gallery_features.T)})
+        clf = neighbors.KNeighborsClassifier(k,algorithm='brute',metric='seuclidean')
 
         clf.fit(selected_gallery_features, selected_gallery_labels)
         distances, predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=True)
