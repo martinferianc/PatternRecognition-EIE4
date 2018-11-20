@@ -10,6 +10,8 @@ import random
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.neighbors import NearestNeighbors
+from post_process import plot_confusion_matrix
+
 
 from pre_process_raw import load_data
 from lda import LDA
@@ -230,7 +232,6 @@ def main():
 
     '''
 
-    '''
 
     ###################################
     # PCA-LDA PARAMETER RANDOMISATION #
@@ -240,8 +241,8 @@ def main():
     NUM_MACHINES = 15
 
     # Machine Parameters
-    M0 = 100
-    M1 = 50
+    M0 = 125
+    M1 = 25
 
     #M_pca = 100
     M_lda = 40
@@ -283,8 +284,10 @@ def main():
     err = identity_error(labels_out,dataset['test_y'])
 
     print('error(average): ',err)
+    plot_confusion_matrix(dataset["test_y"], labels_out, "results/q3/lda_pca_ensemble_classifier_cm",normalize=True)
 
-    '''
+
+
 
     ############################
     # ENSEMBLE HYPERPARAMETERS #

@@ -4,3 +4,4 @@ sklearn
 matplotlib
 tqdm
 pympler
+psutil

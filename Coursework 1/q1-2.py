@@ -7,7 +7,7 @@ import copy
 from pre_process import load_data
 from eigenfaces import EigenFace
 from profiling import get_process_memory
-
+from post_process import plot_confusion_matrix
 def main():
 
     # load data
@@ -16,10 +16,7 @@ def main():
     # Initialise EigenFace Class
     eigenface = EigenFace(copy.deepcopy(dataset),copy.deepcopy(eigenvectors[0]),mean)
 
-    #err, y_pred = eigenface.run_nn_classifier()
-
     M = np.arange(0,401,5)
-    #M = np.arange(0,200,25)
 
     ########################
     # RECONSTRUCTION ERROR #
@@ -30,7 +27,6 @@ def main():
     run_time = []
     mem_consumption = []
     for m in M:
-        print(m)
         eigenface.M = m
         start = time.time()
         err.append(eigenface.run_reconstruction())
@@ -41,42 +37,46 @@ def main():
 
     # Run Time
     fig, ax1 = plt.subplots()
-    ax1.plot(M,run_time)
+    h1, = ax1.plot(M,run_time, label="Run Time")
     ax1.set_ylabel('Run Time (s)')
     ax1.set_xlabel('Number of Eigenvectors')
-
     # Memory Consumption
     ax2 = ax1.twinx()
-    ax2.plot(M,mem_consumption,'r')
+    h2, = ax2.plot(M,mem_consumption,'r',label="Memory Consumption")
     ax2.set_ylabel('Memory Consumption (%)')
-
+    plt.legend(handles=[h1, h2])
     fig.tight_layout()
     plt.title('Reconstruction Run Time & Memory Consumption')
     plt.savefig("results/q1-2/reconstruction_run_time_and_mem.png", format="png", transparent=True)
+    plt.close()
 
     # Error
     plt.figure()
-    plt.plot(M,err)
+    plt.plot(M,err,label="Error")
     plt.ylabel('Error')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Reconstruction Error')
+    plt.legend()
     plt.savefig("results/q1-2/reconstruction_error.png", format="png", transparent=True)
+    plt.close()
 
     # Run Time
     fig, ax1 = plt.subplots()
-    ax1.plot(M,err)
+    h1, = ax1.plot(M,err, label="Reconstruction Error")
     ax1.set_ylabel('Error')
     ax1.set_xlabel('Number of Eigenvectors')
 
     # Memory Consumption
     ax2 = ax1.twinx()
-    ax2.plot(M,eigenvalues[0][M],'r')
+    h2, = ax2.plot(M,eigenvalues[0][M],'r',label="Eigenvalue magnitude")
     ax2.set_ylabel('Eigenvalues')
 
+    plt.legend(handles=[h1,h2])
     fig.tight_layout()
     plt.title('Reconstruction Error')
     plt.savefig("results/q1-2/reconstruction_err_eigenvalues.png", format="png", transparent=True)
-
+    plt.close()
+    """
     #############################
     # RECONSTRUCTION COMPARISON #
     #############################
@@ -130,10 +130,8 @@ def main():
     ax4.axis('off')
     ax4.set_title('M=400')
 
-
-    #plt.title('Comparison of reconstruction')
     plt.savefig("results/q1-2/reconstruction_comparison.png", format="png", transparent=True)
-    #plt.show()
+    plt.close()
 
     ############
     # NN ERROR #
@@ -144,7 +142,6 @@ def main():
     mem_consumption = []
 
     for m in M:
-        print(m)
         eigenface.M = m
         start = time.time()
         err.append(eigenface.run_nn_classifier()[0])
@@ -155,27 +152,28 @@ def main():
 
     # Run Time
     fig, ax1 = plt.subplots()
-    ax1.plot(M,run_time)
+    h1, = ax1.plot(M,run_time, label="Run Time")
     ax1.set_ylabel('Run Time (s)')
     ax1.set_xlabel('Number of Eigenvectors')
 
     # Memory Consumption
     ax2 = ax1.twinx()
-    ax2.plot(M,mem_consumption,'r')
+    h2, = ax2.plot(M,mem_consumption,'r', label="Memory Consumption")
     ax2.set_ylabel('Memory Consumption (%)')
-
+    plt.legend(handles=[h1,h2])
     fig.tight_layout()
     plt.title('Nearest Neighbour Classifer Run Time & Memory Consumption')
     plt.savefig("results/q1-2/nn_run_time_and_mem.png", format="png", transparent=True)
-
+    plt.close()
     # Error
     plt.figure()
-    plt.plot(M,err)
+    plt.plot(M,err, label="Error")
     plt.ylabel('Error (MSE)')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Nearest Neighbour Classifer Error')
+    plt.legend()
     plt.savefig("results/q1-2/nn_error.png", format="png", transparent=True)
-
+    plt.close()
     #############################################
     # RECONSTRUCTION CLASSIFIER ERROR (FIXED M) #
     #############################################
@@ -193,20 +191,23 @@ def main():
 
     # Run Time
     plt.figure()
-    plt.plot(M,run_time)
+    plt.plot(M,run_time,label="Run Time")
     plt.ylabel('Run Time (s)')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Reconstruction Classifer Run Time')
+    plt.legend()
     plt.savefig("results/q1-2/reconstruction_classifier_run_time.png", format="png", transparent=True)
+    plt.close()
 
     # Error
     plt.figure()
-    plt.plot(M,err)
+    plt.plot(M,err,label="Error")
     plt.ylabel('Error (MSE)')
     plt.xlabel('Number of Eigenvectors')
     plt.title('Reconstruction Classifer Error')
+    plt.legend()
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
-
+    plt.close()
 
 
     ############################################
@@ -228,38 +229,43 @@ def main():
 
     # Run Time
     fig, ax1 = plt.subplots()
-    ax1.plot(err_cutoff,run_time)
+    h1, = ax1.plot(err_cutoff,run_time, label="Run Time")
     ax1.set_ylabel('Run Time (s)')
     ax1.set_xlabel('Number of Eigenvectors')
 
     # Memory Consumption
     ax2 = ax1.twinx()
-    ax2.plot(err_cutoff,mem_consumption,'r')
+    h2, = ax2.plot(err_cutoff,mem_consumption,'r', label="Memory Consumption")
     ax2.set_ylabel('Memory Consumption (%)')
 
     fig.tight_layout()
+    plt.legend(handles=[h1,h2])
     plt.title('Reconstruction Classifier Run Time & Memory Consumption')
     plt.savefig("results/q1-2/reconstruction_classifier_run_time_and_mem.png", format="png", transparent=True)
-
+    plt.close()
     # Error
     plt.figure()
-    plt.plot(err_cutoff,err)
+    plt.plot(err_cutoff,err, label="Error")
     plt.ylabel('Error (MSE)')
     plt.xlabel('Cutoff for Class-wise Reconstruction Error')
     plt.title('Reconstruction Classifer Error')
+    plt.legend()
     plt.savefig("results/q1-2/reconstruction_classifier_error.png", format="png", transparent=True)
+    plt.close()
 
     #########################
     # CLASSIFIER COMPARISON #
     #########################
-
+    """
     # Best, reconstruction classifier
     eigenface.M = 2
     err, y_pred = eigenface.run_reconstruction_classifier(err_min=20)
+    plot_confusion_matrix(dataset[1][1], y_pred, "results/q1-2/reconstruction_classifier_cm",normalize=True)
 
-    # Best, NN classifier
-    eigenface.M = 400
+    # Best, NN-PCA classifier
+    eigenface.M = 100
     err, y_pred = eigenface.run_nn_classifier()
+    plot_confusion_matrix(dataset[1][1], y_pred, "results/q1-2/nn_pca_classifier_cm",normalize=True)
 
     # find wrong classification
     err_index = 0
@@ -289,9 +295,8 @@ def main():
     ax2.axis('off')
     ax2.set_title('Wrong Prediction')
 
-    #plt.title('Comparison of reconstruction')
     plt.savefig("results/q1-2/wrong_nn_classifier.png", format="png", transparent=True)
-
+    plt.close()
 
 if __name__ == '__main__':
     main()

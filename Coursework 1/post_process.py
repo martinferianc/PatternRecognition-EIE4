@@ -110,10 +110,10 @@ def plot_confusion_matrix(y_test, y_pred, file_path,
 
 
     thresh = cm.max() / 2.0
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, np.around(cm[i, j],2),
-                 horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
+    #for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+    #    plt.text(j, i, np.around(cm[i, j],2),
+    #             horizontalalignment="center",
+    #             color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
     plt.ylabel('True label')

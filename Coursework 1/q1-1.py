@@ -101,7 +101,7 @@ def main():
 
     plt.figure()
     plt.title('Relative Reconstruction Error')
-    plt.xlabel('$l_{m}$ eigenvalue sum')
+    plt.xlabel('$\lambda_{i}$ eigenvalue sum')
     plt.ylabel('Accuracy')
     plt.plot(k)
     plt.savefig('results/q1/relative_accuracy.png',
