@@ -99,12 +99,24 @@ def identity_error(labels, labels_correct):
     #normalise by size of labels
     return err/len(labels)
 
+def nn_classifier_index(face,train):
+    nn = copy.deepcopy(train)
+    label_index = 0
+    min_distance =  np.linalg.norm(face - nn)
+    for i in range(1,train.shape[0]):
+        #get distance between
+        curr_distance = np.linalg.norm(face - train[i])
+        if curr_distance < min_distance:
+            nn = train[i]
+            min_distance = curr_distance
+            label_index = i
+    return label_index
+
 def main():
 
     # Load dataset
     dataset = load_data()
 
-    '''
 
     ##############
     # BASIC TEST #
@@ -121,9 +133,58 @@ def main():
 
     # Run
     lda.run_pca_lda()
-    lda.run_nn_classifier()
+    err, y_pred = lda.run_nn_classifier()
 
+    # find wrong classification
+    err_index = 0
+    for i in range(1,len(y_pred)):
+        if not y_pred[i] == dataset['test_y'][i]:
+            err_index = i
+            break
+        if y_pred[i] == dataset['test_y'][i]:
+            corr_index = i
 
+    correct_face = copy.deepcopy(dataset['test_x'][:,[err_index]])
+    index = nn_classifier_index(lda.transform(correct_face),lda.transform(dataset['train_x']))
+    wrong_face   = copy.deepcopy(dataset['train_x'][:,[index]])
+
+    correct_face_2 = copy.deepcopy(dataset['test_x'][:,[corr_index]])
+    index = nn_classifier_index(lda.transform(correct_face_2),lda.transform(dataset['train_x']))
+    corr_face   = copy.deepcopy(dataset['train_x'][:,[index]])
+
+    # plot both faces to compare
+    plt.figure()
+    f, ax = plt.subplots(2, 2, sharey=True)
+    f.suptitle('PCA-LDA-NN wrong classification comparison')
+
+    img = (correct_face).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[0,0].imshow(img, cmap="gray")
+    ax[0,0].axis('off')
+    ax[0,0].set_title('Input Face')
+
+    img = (wrong_face).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[0,1].imshow(img, cmap="gray")
+    ax[0,1].axis('off')
+    ax[0,1].set_title('Wrong Prediction')
+
+    img = (correct_face_2).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[1,0].imshow(img, cmap="gray")
+    ax[1,0].axis('off')
+    ax[1,0].set_title('Input Face')
+
+    img = (corr_face).reshape((46,56))
+    img = np.rot90(img,3)
+    ax[1,1].imshow(img, cmap="gray")
+    ax[1,1].axis('off')
+    ax[1,1].set_title('Correct Prediction')
+
+    #plt.title('Comparison of reconstruction')
+    plt.savefig("results/q3/wrong_pca_lda_nn_classifier.png", format="png", transparent=True)
+
+    '''
 
 
     ######################
