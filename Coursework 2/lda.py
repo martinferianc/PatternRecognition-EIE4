@@ -37,7 +37,10 @@ def wPCA(_X, n):
 
     # Compute the eigenvalues and eigenvectors
     D,V = np.linalg.eig(c)
-    iD = D**(-1)
+    iD = copy.deepcopy(D)
+    for i in range(len(D)):
+        if iD[i]!=0.0:
+            iD[i] = iD[i]**(-1)
 
     # Convert to original eigenvectors
     U = np.matmul(X,np.matmul(V,np.diag(iD)))
