@@ -142,22 +142,28 @@ def preprocess():
         _gallery_data = features[gallery_indexes,:]
 
         print("Normalizing data...")
-        training_data = normalize(_training_data)
-        query_data = normalize(_query_data)
-        gallery_data = normalize(_gallery_data)
+        training_data = copy.deepcopy(_training_data)
+        query_data = copy.deepcopy(_query_data)
+        gallery_data = copy.deepcopy(_gallery_data)
+
+        training_data_normalized = normalize(_training_data)
+        query_data_normalized = normalize(_query_data)
+        gallery_data_normalized = normalize(_gallery_data)
+
 
         print("Saving data...")
-        all_data = [[training_data,training_labels, training_camId], \
-                    [query_data, query_labels, query_camId], \
-                    [gallery_data,gallery_labels, gallery_camId]]
+        all_data = [[training_data, training_data_normalized ,training_labels, training_camId], \
+                    [query_data, query_data_normalized, query_labels, query_camId], \
+                    [gallery_data, gallery_data_normalized ,gallery_labels, gallery_camId]]
         for i,t in enumerate(types):
             save_data(all_data[i][0],PROCESSED_DIR,"{}_features".format(t))
-            save_data(all_data[i][1],PROCESSED_DIR,"{}_labels".format(t))
-            save_data(all_data[i][2],PROCESSED_DIR,"{}_camId".format(t))
+            save_data(all_data[i][1],PROCESSED_DIR,"{}_normalized_features".format(t))
+            save_data(all_data[i][2],PROCESSED_DIR,"{}_labels".format(t))
+            save_data(all_data[i][3],PROCESSED_DIR,"{}_camId".format(t))
 
         return all_data
 
-def load_data():
+def load_data(z_normalized = True):
     """
     Load the cached data or call preprocess()
     to generate new data
@@ -172,16 +178,27 @@ def load_data():
         * All the data split into lists of [features, labels]
 
     """
-    if not os.path.exists(os.path.join(DATA_DIR, "processed/", "training_features.npy")):
+    if not os.path.exists(os.path.join(DATA_DIR, "processed/", "training_normalized_features.npy")):
         print("Generating new data...")
-        return preprocess()
+        all_data = preprocess()
+        if z_normalized:
+            del all_data[0][0]
+            del all_data[1][0]
+            del all_data[2][0]
+        else:
+            del all_data[0][1]
+            del all_data[1][1]
+            del all_data[2][1]
     print("Loading data...")
 
     types = ["training","query", "gallery"]
     all_data = []
     for t in types:
         data = []
-        data.append(np.load(PROCESSED_DIR + "{}_features.npy".format(t)))
+        if z_normalized:
+            data.append(np.load(PROCESSED_DIR + "{}_normalized_features.npy".format(t)))
+        else:
+            data.append(np.load(PROCESSED_DIR + "{}_features.npy".format(t)))
         data.append(np.load(PROCESSED_DIR + "{}_labels.npy".format(t)))
         data.append(np.load(PROCESSED_DIR + "{}_camId.npy".format(t)))
         all_data.append(data)

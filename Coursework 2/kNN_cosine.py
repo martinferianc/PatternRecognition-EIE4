@@ -4,29 +4,10 @@ from pre_process import load_data, select_features
 import numpy as np
 # Import the kNN library
 from sklearn import neighbors
-
-# Import matplotlib
-import matplotlib.pyplot as plt
-
 # Import post process analysing methods
-from sklearn.feature_selection import VarianceThreshold
-from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
-
-
-from lda import *
-
 from tqdm import tqdm
-
 from collections import Counter
-
-def metric(x,y, **kwargs):
-    U = kwargs["metric_params"]["U"]
-    A = kwargs["metric_params"]["A"]
-    s1 = np.matmul(A.T, x-y)
-    s2 = np.matmul(x-y,A)
-    s3 = np.matul(np.matmul(s1.T,A),s_2)
-    return np.sqrt(s3)
 
 def weight(x, sigma=0.1):
     return np.exp(-(x** 2) / 2*(sigma**2))
@@ -45,7 +26,7 @@ def vote(x, weights):
     return label
 
 
-def analyse_KNN_feature_preselection(k=10):
+def analyse_KNN_cosine(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests
@@ -86,23 +67,7 @@ def analyse_KNN_feature_preselection(k=10):
     labels= [None]*k
     tops = [0]*k
     query_features = normalize(query_features, axis=1)
-    training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
-
-
-    #A_s,U_s = find_matrices(training_features, training_labels)
-
-#    selector = VarianceThreshold(threshold=(.8 * (1 - .8)))
-#    training_features = selector.fit_transform(training_features, training_labels)
-#    gallery_features = selector.transform(gallery_features)
-#    query_features = selector.transform(query_features)
-
-    #lda_W = LDA(training_features.T, training_labels)
-
-    #training_features = LDA_transform(lda_W,training_features.T)
-    #gallery_features = LDA_transform(lda_W,gallery_features.T)
-    #query_features = LDA_transform(lda_W,query_features.T)
-
 
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]
@@ -111,9 +76,7 @@ def analyse_KNN_feature_preselection(k=10):
 
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
-        clf = neighbors.KNeighborsClassifier(k,algorithm="brute", metric="euclidean")
-        #clf = neighbors.KNeighborsClassifier(k,algorithm='brute',metric=metric,
-        #                                    metric_params={"A": A_s[query_label], "U": U_s[query_label]})
+        clf = neighbors.KNeighborsClassifier(k,metric="cosine")
 
         clf.fit(selected_gallery_features, selected_gallery_labels)
         distances, predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=True)

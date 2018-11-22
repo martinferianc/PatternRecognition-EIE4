@@ -12,21 +12,24 @@ from sklearn.metrics import precision_score
 from kNN_manhattan import analyse_KNN_manhattan
 from kNN_euclidian import analyse_KNN_euclidian
 from kNN_improved_feature_preselection import analyse_KNN_feature_preselection
+from kNN_cosine import analyse_KNN_cosine
 
 
 if __name__ == '__main__':
     k = 10
-    #methods = ["Manhattan Distance", "Euclidian Distance", "Feature pre-selection"]
+    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine"]
     methods = ["Feature pre-selection"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
         if method == "Manhattan Distance":
             labels,errors, tops, true_labels = analyse_KNN_manhattan()
-        if method == "Euclidian Distance":
-            labels,errors, tops, true_labels = analyse_KNN_manhattan()
-        if method == "Feature pre-selection":
+        elif method == "Euclidian Distance":
+            labels,errors, tops, true_labels = analyse_KNN_euclidian()
+        elif method == "Feature pre-selection":
             labels,errors, tops, true_labels = analyse_KNN_feature_preselection()
+        elif method == "Cosine":
+            labels,errors, tops, true_labels = analyse_KNN_cosine()
         results[method] = [labels,errors, tops]
         mAPs = []
         for i in range(len(errors)):
