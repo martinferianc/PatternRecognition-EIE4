@@ -9,17 +9,16 @@ from sklearn import neighbors
 import matplotlib.pyplot as plt
 
 # Import post process analysing methods
-from sklearn.feature_selection import VarianceThreshold
 from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
 
-
-from lda import *
+import metric_learn
 
 from tqdm import tqdm
 
 from collections import Counter
 
+"""
 def metric(x,y, **kwargs):
     U = kwargs["metric_params"]["U"]
     A = kwargs["metric_params"]["A"]
@@ -27,7 +26,7 @@ def metric(x,y, **kwargs):
     s2 = np.matmul(x-y,A)
     s3 = np.matul(np.matmul(s1.T,A),s_2)
     return np.sqrt(s3)
-
+"""
 def weight(x, sigma=0.1):
     return np.exp(-(x** 2) / 2*(sigma**2))
 
@@ -97,11 +96,25 @@ def analyse_KNN_feature_preselection(k=10):
 #    gallery_features = selector.transform(gallery_features)
 #    query_features = selector.transform(query_features)
 
-    #lda_W = LDA(training_features.T, training_labels)
+    #lda_W = LDA(training_features.T, training_labels)[:,:200]
 
     #training_features = LDA_transform(lda_W,training_features.T)
     #gallery_features = LDA_transform(lda_W,gallery_features.T)
     #query_features = LDA_transform(lda_W,query_features.T)
+
+    # setting up LMNN
+    #lmnn = metric_learn.SDML_Supervised(verbose = True, num_constraints=200)
+
+    # fit the data!
+    #lmnn.fit(training_features, training_labels, random_state = np.random.RandomState(1234))
+
+    #M = lmnn.metric()
+
+    #A = np.linalg.cholesky(M)
+
+    # transform our input space
+    #gallery_features = np.matmul(gallery_features,A)
+    #query_features = np.matmul(query_features,A)
 
 
     for i in tqdm(range(len(query_features))):
