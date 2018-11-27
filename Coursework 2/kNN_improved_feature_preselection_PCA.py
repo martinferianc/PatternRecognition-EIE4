@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Import post process analysing methods
 from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
 
 import metric_learn
 
@@ -88,44 +88,12 @@ def analyse_KNN_feature_preselection_PCA(k=10):
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
-
-    pca = PCA(n_components=500)
+    pca = KernelPCA(n_components=500, kernel="rbf", n_jobs=-1)
     pca.fit(training_features)
 
     query_features      = pca.transform(query_features)
     training_features   = pca.transform(training_features)
     gallery_features    = pca.transform(gallery_features)
-
-    print(gallery_features.shape)
-
-
-    #A_s,U_s = find_matrices(training_features, training_labels)
-
-#    selector = VarianceThreshold(threshold=(.8 * (1 - .8)))
-#    training_features = selector.fit_transform(training_features, training_labels)
-#    gallery_features = selector.transform(gallery_features)
-#    query_features = selector.transform(query_features)
-
-    #lda_W = LDA(training_features.T, training_labels)[:,:200]
-
-    #training_features = LDA_transform(lda_W,training_features.T)
-    #gallery_features = LDA_transform(lda_W,gallery_features.T)
-    #query_features = LDA_transform(lda_W,query_features.T)
-
-    # setting up LMNN
-    #lmnn = metric_learn.SDML_Supervised(verbose = True, num_constraints=200)
-
-    # fit the data!
-    #lmnn.fit(training_features, training_labels, random_state = np.random.RandomState(1234))
-
-    #M = lmnn.metric()
-
-    #A = np.linalg.cholesky(M)
-
-    # transform our input space
-    #gallery_features = np.matmul(gallery_features,A)
-    #query_features = np.matmul(query_features,A)
-
 
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]

@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 # Import post process analysing methods
 from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 import metric_learn
 
@@ -85,9 +86,24 @@ def analyse_KNN_feature_preselection(k=10):
     errors = [0]*k
     labels= [None]*k
     tops = [0]*k
+
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
+    print("potato")
+    pca = KernelPCA(n_components=500)
+    pca.fit(training_features)
+
+    query_features      = pca.transform(query_features)
+    training_features   = pca.transform(training_features)
+    gallery_features    = pca.transform(gallery_features)
+
+    lda = LDA()
+    lda.fit(training_features, training_labels)
+
+    query_features      = lda.transform(query_features)
+    training_features   = lda.transform(training_features)
+    gallery_features    = lda.transform(gallery_features)
 
     #A_s,U_s = find_matrices(training_features, training_labels)
 

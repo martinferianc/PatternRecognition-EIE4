@@ -19,7 +19,7 @@ from kNN_cosine import analyse_KNN_cosine
 if __name__ == '__main__':
     k = 10
     #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine"]
-    methods = ["Feature pre-selection PCA"]
+    methods = ["Feature pre-selection"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
