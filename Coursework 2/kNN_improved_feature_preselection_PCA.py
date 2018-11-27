@@ -45,7 +45,7 @@ def vote(x, weights):
     return label
 
 
-def analyse_KNN_feature_preselection(k=10):
+def analyse_KNN_feature_preselection_PCA(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests
@@ -88,6 +88,16 @@ def analyse_KNN_feature_preselection(k=10):
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
+
+    pca = PCA(n_components=500)
+    pca.fit(training_features)
+
+    query_features      = pca.transform(query_features)
+    training_features   = pca.transform(training_features)
+    gallery_features    = pca.transform(gallery_features)
+
+    print(gallery_features.shape)
+
 
     #A_s,U_s = find_matrices(training_features, training_labels)
 
