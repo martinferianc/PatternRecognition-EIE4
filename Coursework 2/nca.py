@@ -11,6 +11,7 @@ import sys
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.metrics import pairwise_distances
+from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import ConvergenceWarning
 
@@ -177,7 +178,8 @@ class NCA(BaseMetricLearner):
     A = A.reshape(-1, X.shape[1])
     X_embedded = np.dot(X, A.T)  # (n_samples, num_dims)
     # Compute softmax distances
-    p_ij = pairwise_distances(X_embedded, squared=True)
+    #p_ij = pairwise_distances(X_embedded, metric="gaussian")
+    p_ij = rbf_kernel(X_embedded)
     np.fill_diagonal(p_ij, np.inf)
     p_ij = np.exp(-p_ij - logsumexp(-p_ij, axis=1)[:, np.newaxis])
     # (n_samples, n_samples)
