@@ -14,7 +14,7 @@ from sklearn.preprocessing import normalize
 from sklearn.decomposition import KernelPCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
-import metric_learn
+from nca import NCA
 
 from tqdm import tqdm
 
@@ -67,6 +67,7 @@ def analyse_KNN_feature_preselection(k=10):
     all_data = load_data(False)
     training_data = all_data[0]
 
+    N = 70
     training_labels = training_data[1]
     training_features = training_data[0]
     training_camIds = training_data[2]
@@ -90,48 +91,18 @@ def analyse_KNN_feature_preselection(k=10):
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
-    print("potato")
-    pca = KernelPCA(n_components=500)
-    pca.fit(training_features)
+    #pca = KernelPCA(n_components=N-1)
+    #pca.fit(training_features)
 
-    query_features      = pca.transform(query_features)
-    training_features   = pca.transform(training_features)
-    gallery_features    = pca.transform(gallery_features)
+    #query_features      = pca.transform(query_features)
+    #training_features   = pca.transform(training_features)
+    #gallery_features    = pca.transform(gallery_features)
 
-    lda = LDA()
-    lda.fit(training_features, training_labels)
+    nca = NCA(max_iter=30, verbose=True, num_dims=1000)
 
-    query_features      = lda.transform(query_features)
-    training_features   = lda.transform(training_features)
-    gallery_features    = lda.transform(gallery_features)
-
-    #A_s,U_s = find_matrices(training_features, training_labels)
-
-#    selector = VarianceThreshold(threshold=(.8 * (1 - .8)))
-#    training_features = selector.fit_transform(training_features, training_labels)
-#    gallery_features = selector.transform(gallery_features)
-#    query_features = selector.transform(query_features)
-
-    #lda_W = LDA(training_features.T, training_labels)[:,:200]
-
-    #training_features = LDA_transform(lda_W,training_features.T)
-    #gallery_features = LDA_transform(lda_W,gallery_features.T)
-    #query_features = LDA_transform(lda_W,query_features.T)
-
-    # setting up LMNN
-    #lmnn = metric_learn.SDML_Supervised(verbose = True, num_constraints=200)
-
-    # fit the data!
-    #lmnn.fit(training_features, training_labels, random_state = np.random.RandomState(1234))
-
-    #M = lmnn.metric()
-
-    #A = np.linalg.cholesky(M)
-
-    # transform our input space
-    #gallery_features = np.matmul(gallery_features,A)
-    #query_features = np.matmul(query_features,A)
-
+    training_features = nca.fit(training_features, training_labels)
+    query_features      = nca.transform(query_features)
+    gallery_features    = nca.transform(gallery_features)
 
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]
