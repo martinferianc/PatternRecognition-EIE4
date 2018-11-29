@@ -11,6 +11,7 @@ import sys
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.metrics import pairwise_distances
+from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import ConvergenceWarning
@@ -76,7 +77,7 @@ class BaseMetricLearner(BaseEstimator, TransformerMixin):
 EPS = np.finfo(float).eps
 
 class NCA(BaseMetricLearner):
-  def __init__(self, num_dims=None, max_iter=100, learning_rate='deprecated',
+  def __init__(self, num_dims=None, max_iter=100,
                tol=None, verbose=False):
     """Neighborhood Components Analysis
     Parameters
@@ -86,11 +87,6 @@ class NCA(BaseMetricLearner):
       (``d``) at fit time.
     max_iter : int, optional (default=100)
       Maximum number of iterations done by the optimization algorithm.
-    learning_rate : Not used
-      .. deprecated:: 0.4.0
-        `learning_rate` was deprecated in version 0.4.0 and will
-        be removed in 0.5.0. The current optimization algorithm does not need
-        to fix a learning rate.
     tol : float, optional (default=None)
         Convergence tolerance for the optimization.
     verbose : bool, optional (default=False)
@@ -98,7 +94,6 @@ class NCA(BaseMetricLearner):
     """
     self.num_dims = num_dims
     self.max_iter = max_iter
-    self.learning_rate = learning_rate  # TODO: remove in v.0.5.0
     self.tol = tol
     self.verbose = verbose
 
@@ -110,10 +105,6 @@ class NCA(BaseMetricLearner):
     X: data matrix, (n x d)
     y: scalar labels, (n)
     """
-    if self.learning_rate != 'deprecated':
-      warnings.warn('"learning_rate" parameter is not used.'
-                    ' It has been deprecated in version 0.4 and will be'
-                    'removed in 0.5', DeprecationWarning)
 
     X, labels = check_X_y(X, y)
     n, d = X.shape
@@ -135,7 +126,7 @@ class NCA(BaseMetricLearner):
                         'args': (X, mask, -1.0),
                         'jac': True,
                         'x0': A.ravel(),
-                        'options': dict(maxiter=self.max_iter),
+                        'options': {"maxiter":self.max_iter, "maxfun": self.max_iter},
                         'tol': self.tol
                         }
 
@@ -178,8 +169,9 @@ class NCA(BaseMetricLearner):
     A = A.reshape(-1, X.shape[1])
     X_embedded = np.dot(X, A.T)  # (n_samples, num_dims)
     # Compute softmax distances
-    #p_ij = pairwise_distances(X_embedded, metric="gaussian")
-    p_ij = rbf_kernel(X_embedded)
+    #p_ij = 2 - 2*pairwise_kernels(X_embedded, metric='rbf', n_jobs = -1)
+    p_ij = pairwise_distances(X_embedded, squared=True)
+
     np.fill_diagonal(p_ij, np.inf)
     p_ij = np.exp(-p_ij - logsumexp(-p_ij, axis=1)[:, np.newaxis])
     # (n_samples, n_samples)

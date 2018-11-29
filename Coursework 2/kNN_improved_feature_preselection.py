@@ -11,11 +11,12 @@ import matplotlib.pyplot as plt
 # Import post process analysing methods
 from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import KernelPCA
+from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.metrics.pairwise import rbf_kernel
 
 from nca import NCA
+from lfda import LFDA
 
 from tqdm import tqdm
 
@@ -23,7 +24,7 @@ from collections import Counter
 
 
 def metric(x,y):
-    return 1+1-2*rbf_kernel(x.reshape(1, -1),y.reshape(1, -1))
+    return np.sqrt(2-2*rbf_kernel(x.reshape(1, -1),y.reshape(1, -1)))
 
 def weight(x, sigma=0.1):
     return np.exp(-(x** 2) / 2*(sigma**2))
@@ -87,18 +88,18 @@ def analyse_KNN_feature_preselection(k=10):
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
-    #pca = KernelPCA(n_components=N-1)
-    #pca.fit(training_features)
+    pca = KernelPCA(n_components=500)
+    pca.fit(training_features)
 
-    #query_features      = pca.transform(query_features)
-    #training_features   = pca.transform(training_features)
-    #gallery_features    = pca.transform(gallery_features)
+    query_features      = pca.transform(query_features)
+    training_features   = pca.transform(training_features)
+    gallery_features    = pca.transform(gallery_features)
 
-    nca = NCA(max_iter=30, verbose=True, num_dims=100)
+    lfda = LFDA(k=5)
 
-    training_features = nca.fit(training_features, training_labels)
-    query_features      = nca.transform(query_features)
-    gallery_features    = nca.transform(gallery_features)
+    training_features = lfda.fit(training_features, training_labels)
+    query_features      = lfda.transform(query_features)
+    gallery_features    = lfda.transform(gallery_features)
 
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]
@@ -131,6 +132,7 @@ def analyse_KNN_feature_preselection(k=10):
 
             if label!=query_label:
                 errors[j]+=1
+        print(errors[0]/(i+1))
     for i in range(len(errors)):
         errors[i]/=len(query_features)
         tops[i]/=len(query_features)
