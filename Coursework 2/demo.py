@@ -8,11 +8,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from nca import NCA
 
 from lfda import LFDA
+from kernel_lda import LDA
 
 # loading our dataset
 
 iris_data = load_iris()
 # this is our data
+
 X = iris_data['data']
 # these are our constraints
 Y = iris_data['target']
@@ -37,6 +39,11 @@ def plot(X, Y):
 
     plt.show()
 
-lfda = LFDA(k=10)
-X_nca = lfda.fit_transform(X, Y)
-plot(X_nca, Y)
+lda = LDA()
+#lfda = LFDA(k=10)
+
+lda.fit(X_train.T,Y_train,True)
+X = lda.transform(X.T)
+#X_nca = lfda.fit_transform(X, Y)
+print(X.shape, Y.shape)
+plot(X, Y)

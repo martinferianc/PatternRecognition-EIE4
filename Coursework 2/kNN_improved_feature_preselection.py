@@ -17,6 +17,7 @@ from sklearn.metrics.pairwise import rbf_kernel
 
 from nca import NCA
 from lfda import LFDA
+from kernel_lda import LDA
 
 from tqdm import tqdm
 
@@ -64,9 +65,9 @@ def analyse_KNN_feature_preselection(k=10):
     all_data = load_data(False)
     training_data = all_data[0]
 
-    N = 70
-    training_labels = training_data[1]
-    training_features = training_data[0]
+    N = 5000
+    training_labels = training_data[1][:N]
+    training_features = training_data[0][:N,:]
     training_camIds = training_data[2]
 
     query_data = all_data[1]
@@ -88,18 +89,26 @@ def analyse_KNN_feature_preselection(k=10):
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
-    pca = KernelPCA(n_components=500)
-    pca.fit(training_features)
+    #pca = KernelPCA(n_components=500)
+    #pca.fit(training_features)
 
-    query_features      = pca.transform(query_features)
-    training_features   = pca.transform(training_features)
-    gallery_features    = pca.transform(gallery_features)
+    lda = LDA()
+    lda.fit(training_features.T, training_labels, True)
 
-    lfda = LFDA(k=5)
+    query_features      = lda.transform(query_features.T)
+    #training_features   = pca.transform(training_features)
+    gallery_features    = lda.transform(gallery_features.T)
 
-    training_features = lfda.fit(training_features, training_labels)
-    query_features      = lfda.transform(query_features)
-    gallery_features    = lfda.transform(gallery_features)
+
+    #query_features      = pca.transform(query_features)
+    #training_features   = pca.transform(training_features)
+    #gallery_features    = pca.transform(gallery_features)
+
+    #lfda = LFDA(k=5)
+
+    #training_features = lfda.fit(training_features, training_labels)
+    #query_features      = lfda.transform(query_features)
+    #gallery_features    = lfda.transform(gallery_features)
 
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]
@@ -108,7 +117,7 @@ def analyse_KNN_feature_preselection(k=10):
 
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
-        clf = neighbors.KNeighborsClassifier(k,algorithm="brute", metric=metric)
+        clf = neighbors.KNeighborsClassifier(k,algorithm="brute", metric="euclidean")
         #clf = neighbors.KNeighborsClassifier(k,algorithm='brute',metric=metric,
         #                                    metric_params={"A": A_s[query_label], "U": U_s[query_label]})
 
