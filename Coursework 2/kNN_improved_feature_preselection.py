@@ -103,7 +103,7 @@ def analyse_KNN_feature_preselection(k=10):
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
 
-        clf = neighbors.KNeighborsClassifier(k,algorithm="brute", metric="euclidean")
+        clf = neighbors.KNeighborsClassifier(k, metric="euclidean")
         clf.fit(selected_gallery_features, selected_gallery_labels)
         #clf.fit(selected_gallery_features)
 
