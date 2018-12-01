@@ -1,23 +1,10 @@
 import numpy as np
 from sklearn.datasets import load_iris
 
-from metric_learn import LFDA
 # visualisation imports
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from nca import NCA
 
-from lfda import LFDA
-from kernel_lda import LDA
-
-# loading our dataset
-
-iris_data = load_iris()
-# this is our data
-
-X = iris_data['data']
-# these are our constraints
-Y = iris_data['target']
 
 # function to plot the results
 def plot(X, Y):
@@ -29,8 +16,8 @@ def plot(X, Y):
     plt.clf()
 
     plt.scatter(X[:, 0], X[:, 1], c=Y, cmap=plt.cm.Paired)
-    plt.xlabel('Sepal length')
-    plt.ylabel('Sepal width')
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
 
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
@@ -39,11 +26,17 @@ def plot(X, Y):
 
     plt.show()
 
-lda = LDA()
-#lfda = LFDA(k=10)
+#lda.fit(X.T,Y,True)
+#X= lda.transform(X.T)
 
-lda.fit(X_train.T,Y_train,True)
-X = lda.transform(X.T)
-#X_nca = lfda.fit_transform(X, Y)
-print(X.shape, Y.shape)
-plot(X, Y)
+#nca = NCA(max_iter=1000)
+
+#X_train = nca.fit_transform(X_train, Y_train)
+#X = nca.transform(X)
+
+#lda = LDA()
+#lda.fit(X_train.T,Y_train,True)
+#X= lda.transform(X.T)
+#print(X)
+#print(X)
+#plot(X, Y)

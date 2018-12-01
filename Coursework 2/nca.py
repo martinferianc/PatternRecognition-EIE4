@@ -10,9 +10,9 @@ import time
 import sys
 import numpy as np
 from scipy.optimize import minimize
-from sklearn.metrics import pairwise_distances
 from sklearn.metrics.pairwise import pairwise_kernels
-from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics import pairwise_distances
+
 from sklearn.utils.validation import check_X_y
 from sklearn.exceptions import ConvergenceWarning
 
@@ -77,7 +77,7 @@ class BaseMetricLearner(BaseEstimator, TransformerMixin):
 EPS = np.finfo(float).eps
 
 class NCA(BaseMetricLearner):
-  def __init__(self, num_dims=None, max_iter=100,
+  def __init__(self, num_dims=None, max_iter=15,
                tol=None, verbose=False):
     """Neighborhood Components Analysis
     Parameters
@@ -169,7 +169,8 @@ class NCA(BaseMetricLearner):
     A = A.reshape(-1, X.shape[1])
     X_embedded = np.dot(X, A.T)  # (n_samples, num_dims)
     # Compute softmax distances
-    #p_ij = 2 - 2*pairwise_kernels(X_embedded, metric='rbf', n_jobs = -1)
+    #K = pairwise_kernels(X_embedded, metric='rbf', n_jobs = -1)
+    #p_ij = 2 - 2*K
     p_ij = pairwise_distances(X_embedded, squared=True)
 
     np.fill_diagonal(p_ij, np.inf)
@@ -185,7 +186,7 @@ class NCA(BaseMetricLearner):
     weighted_p_ij = masked_p_ij - p_ij * p
     weighted_p_ij_sym = weighted_p_ij + weighted_p_ij.T
     np.fill_diagonal(weighted_p_ij_sym, - weighted_p_ij.sum(axis=0))
-    gradient = 2 * (X_embedded.T.dot(weighted_p_ij_sym)).dot(X)
+    gradient = 2 *(X_embedded.T.dot(weighted_p_ij_sym)).dot(X)
 
     if self.verbose:
         start_time = time.time() - start_time

@@ -9,9 +9,8 @@ from sklearn import neighbors
 import matplotlib.pyplot as plt
 
 # Import post process analysing methods
-from learn_distance_metric import find_matrices
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import KernelPCA
+from sklearn.decomposition import PCA
 
 import metric_learn
 
@@ -19,15 +18,6 @@ from tqdm import tqdm
 
 from collections import Counter
 
-"""
-def metric(x,y, **kwargs):
-    U = kwargs["metric_params"]["U"]
-    A = kwargs["metric_params"]["A"]
-    s1 = np.matmul(A.T, x-y)
-    s2 = np.matmul(x-y,A)
-    s3 = np.matul(np.matmul(s1.T,A),s_2)
-    return np.sqrt(s3)
-"""
 def weight(x, sigma=0.1):
     return np.exp(-(x** 2) / 2*(sigma**2))
 
@@ -102,7 +92,7 @@ def analyse_KNN_feature_preselection_PCA(k=10):
 
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
-        clf = neighbors.KNeighborsClassifier(k,algorithm="brute", metric="euclidean")
+        clf = neighbors.KNeighborsClassifier(k, metric="euclidean")
         #clf = neighbors.KNeighborsClassifier(k,algorithm='brute',metric=metric,
         #                                    metric_params={"A": A_s[query_label], "U": U_s[query_label]})
 
