@@ -6,7 +6,6 @@ import numpy as np
 from sklearn import neighbors
 
 # Import matplotlib
-import matplotlib.pyplot as plt
 
 # Import post process analysing methods
 from sklearn.preprocessing import normalize
@@ -16,7 +15,6 @@ import metric_learn
 from nca import NCA
 
 from tqdm import tqdm
-from demo import plot
 
 from collections import Counter
 

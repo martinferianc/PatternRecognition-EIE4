@@ -5,11 +5,6 @@ import numpy as np
 # Import the kNN library
 from sklearn import neighbors
 
-# Import matplotlib
-import matplotlib.pyplot as plt
-# Import post process analysing methods
-from sklearn.metrics import precision_score
-
 #from lda import LDA
 
 from tqdm import tqdm
@@ -70,7 +65,7 @@ def analyse_KNN_euclidian(k=10):
         clf.fit(selected_gallery_features, selected_gallery_labels)
 
         predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
-        
+
         predicted_labels = [selected_gallery_labels[l] for l in predicted_neighbors]
         for i in range(len(predicted_labels[0])):
             rank = predicted_labels[0][:i+1]

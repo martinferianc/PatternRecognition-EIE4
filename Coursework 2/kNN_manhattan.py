@@ -6,7 +6,6 @@ import numpy as np
 from sklearn import neighbors
 
 # Import matplotlib
-import matplotlib.pyplot as plt
 # Import post process analysing methods
 from sklearn.metrics import precision_score
 

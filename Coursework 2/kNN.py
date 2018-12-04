@@ -4,7 +4,7 @@ from pre_process import load_data
 import numpy as np
 
 # Import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # Import post process analysing methods
 from sklearn.metrics import precision_score
@@ -14,12 +14,14 @@ from kNN_euclidian import analyse_KNN_euclidian
 from kNN_improved_feature_preselection import analyse_KNN_feature_preselection
 from kNN_improved_feature_preselection_PCA import analyse_KNN_feature_preselection_PCA
 from kNN_cosine import analyse_KNN_cosine
+from kNN_improved_nn import analyse_KNN_NN
+
 
 
 if __name__ == '__main__':
     k = 10
     #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine"]
-    methods = ["Feature pre-selection"]
+    methods = ["Neural Network"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
@@ -33,6 +35,8 @@ if __name__ == '__main__':
             labels,errors, tops, true_labels = analyse_KNN_feature_preselection_PCA()
         elif method == "Cosine":
             labels,errors, tops, true_labels = analyse_KNN_cosine()
+        elif method == "Neural Network":
+            labels,errors, tops, true_labels = analyse_KNN_NN()
         results[method] = [labels,errors, tops]
         mAPs = []
         for i in range(len(errors)):
