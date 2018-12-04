@@ -36,7 +36,7 @@ def save_data(data, file_path, name):
     """
     np.save(file_path + "{}.npy".format(name),data)
 
-def preprocess(size = 10000,samples = 10, same_class=0.2, different = 0.7, penalty = 10):
+def preprocess(size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, same_class=0.4, different = 0.5, penalty = 10):
     """
     1. Preprocesses the dataset into three splits: training, validation, test
     2. Performs z normalization on the three different chunks
@@ -70,12 +70,12 @@ def preprocess(size = 10000,samples = 10, same_class=0.2, different = 0.7, penal
     D = int(samples*different)
 
     for i in tqdm(range(int(size/samples))):
-        random_i = np.random.randint(0,training_N)
+        random_i = np.random.randint(lower_bound,upper_bound)
         C_counter = 0
         D_counter = 0
         offset = 0
         while D_counter<D:
-            random_j = np.random.randint(0,training_N)
+            random_j = np.random.randint(lower_bound,upper_bound)
             if training_labels[random_i] != training_labels[random_j]:
                 D_counter+=1
                 offset+=1
@@ -86,11 +86,11 @@ def preprocess(size = 10000,samples = 10, same_class=0.2, different = 0.7, penal
         while C_counter<C:
             low = 0
             high = training_N
-            if random_i-10>0:
+            if random_i-10>lower_bound:
                 low = random_i-10
-            if random_i+10<training_N:
+            if random_i+10<upper_bound:
                 high = random_i+10
-            random_j = np.random.randint(low, high)
+            random_j = np.random.randint(lower_bound, upper_bound)
             if training_labels[random_i] == training_labels[random_j] and random_i!=random_j:
                 C_counter+=1
                 offset +=1
@@ -111,7 +111,7 @@ def preprocess(size = 10000,samples = 10, same_class=0.2, different = 0.7, penal
 
     return [X[indeces], Y[indeces], values[indeces]]
 
-def load_data():
+def load_data(retrain=False):
     """
     Load the cached data or call preprocess()
     to generate new data
@@ -126,20 +126,27 @@ def load_data():
         * All the data split into lists of [features, labels]
 
     """
-    if not os.path.exists(os.path.join(DATA_DIR, "processed/", "training_nn_X.npy")):
+    if retrain is True:
         print("Generating new data...")
-        all_data = preprocess()
-        save_data(all_data[0],PROCESSED_DIR,"training_nn_X.npy")
-        save_data(all_data[1],PROCESSED_DIR,"training_nn_Y.npy")
-        save_data(all_data[2],PROCESSED_DIR,"training_nn_values.npy")
-        return all_data
+        X_train, Y_train, values_train = preprocess(50000, 0, 6368)
+        X_validation, Y_validation, values_validation = preprocess(10000, 6369)
+        save_data(X_train,PROCESSED_DIR,"training_nn_X")
+        save_data(Y_train,PROCESSED_DIR,"training_nn_Y")
+        save_data(values_train,PROCESSED_DIR,"training_nn_values")
+        save_data(X_validation,PROCESSED_DIR,"validation_nn_X")
+        save_data(Y_validation,PROCESSED_DIR,"validation_nn_Y")
+        save_data(values_validation,PROCESSED_DIR,"validation_nn_values")
+        return [X_train, Y_train, values_train, X_validation, Y_validation, values_validation]
     else:
         print("Loading data...")
         data = []
         data.append(np.load(PROCESSED_DIR + "training_nn_X.npy"))
         data.append(np.load(PROCESSED_DIR + "training_nn_Y.npy"))
         data.append(np.load(PROCESSED_DIR + "training_nn_values.npy"))
+        data.append(np.load(PROCESSED_DIR + "validation_nn_X.npy"))
+        data.append(np.load(PROCESSED_DIR + "validation_nn_Y.npy"))
+        data.append(np.load(PROCESSED_DIR + "validation_nn_values.npy"))
         return data
 
 if __name__ == '__main__':
-    load_data()
+    load_data(retrain=True)

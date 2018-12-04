@@ -90,6 +90,8 @@ def analyse_KNN_NN(k=10):
 
         distances, predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=True)
         predicted_labels = np.array([selected_gallery_labels[l] for l in predicted_neighbors]).flatten()
+        print(predicted_labels)
+        print(distances)
         weighted_distances = weight(distances).flatten()
 
         for j in range(len(predicted_labels)):
