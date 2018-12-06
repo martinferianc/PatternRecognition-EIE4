@@ -69,20 +69,28 @@ def preprocess(size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, sam
     C = int(samples*same_class)
     D = int(samples*different)
 
+    selected_i = []
+
     for i in tqdm(range(int(size/samples))):
         random_i = np.random.randint(lower_bound,upper_bound)
+        while random_i in selected_i:
+            random_i = np.random.randint(lower_bound,upper_bound)
+        selected_i.append(random_i)
         C_counter = 0
         D_counter = 0
         offset = 0
+        selected_j = []
         while D_counter<D:
             random_j = np.random.randint(lower_bound,upper_bound)
+            while random_j in selected_j:
+                random_j = np.random.randint(lower_bound,upper_bound)
             if training_labels[random_i] != training_labels[random_j]:
                 D_counter+=1
                 offset+=1
                 X.append(copy.deepcopy(training_features[random_i]))
                 Y.append(copy.deepcopy(training_features[random_j]))
                 values.append(penalty)
-
+                selected_j.append(random_j)
         while C_counter<C:
             low = 0
             high = training_N
