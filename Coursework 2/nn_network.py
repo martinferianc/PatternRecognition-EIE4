@@ -18,10 +18,9 @@ def net():
     Input_y = Input(shape=SHAPE, name ='input2')
 
     model = concatenate([Input_x, Input_y])
-    model = Dense(100)(model)
+    model = Dense(250, activation='relu')(model)
+    model = Dropout(0.5)(model)
     model = BatchNormalization()(model)
-    model = Activation('relu')(model)
-    model = Dropout(0.3)(model)
 
     out = Dense(1, activation='relu')(model)
 
@@ -40,7 +39,7 @@ def train(X_train,Y_train, values_train,X_validation,Y_validation, values_valida
 
     history = model.fit([X_train,Y_train], values_train, batch_size = batch_size, epochs =50,
           callbacks=callbacks_list,  validation_data=([X_validation, Y_validation], values_validation))
-
+    return model
 def load_model():
     model = net()
     if os.path.exists(MODEL_FILEPATH):
@@ -54,4 +53,7 @@ def metric(x,y,model):
 
 if __name__ == '__main__':
     X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(False)
-    train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
+    model = train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
+
+    print(model.predict([X_validation[:10,:], Y_validation[:10,:]]))
+    print(values_validation[:10])

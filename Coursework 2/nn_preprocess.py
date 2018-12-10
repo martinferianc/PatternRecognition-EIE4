@@ -140,8 +140,8 @@ def load_data(retrain=False):
     X = training_data[0]
     if retrain is True:
         print("Generating new data...")
-        X_train, Y_train, values_train = preprocess(X,Y, 40000, 0, 6379,samples = 10, same_class=0.4, different = 0.5, penalty = 10,same_class_penalty=1)
-        X_validation, Y_validation, values_validation = preprocess(X,Y, 7500, 6380,samples = 10, same_class=0.2, different = 0.7, penalty = 10, same_class_penalty=1)
+        X_train, Y_train, values_train = preprocess(X,Y, 40000, 0, 6379,samples = 10, same_class=0.4, different = 0.5, penalty = 10,same_class_penalty=0)
+        X_validation, Y_validation, values_validation = preprocess(X,Y, 7500, 6380,samples = 10, same_class=0.2, different = 0.7, penalty = 10, same_class_penalty=0)
         save_data(X_train,PROCESSED_DIR,"training_nn_X")
         save_data(Y_train,PROCESSED_DIR,"training_nn_Y")
         save_data(values_train,PROCESSED_DIR,"training_nn_values")
