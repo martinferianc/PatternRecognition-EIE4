@@ -21,11 +21,7 @@ def net():
     model = Dense(100)(model)
     model = BatchNormalization()(model)
     model = Activation('relu')(model)
-    model = Dropout(0.5)(model)
-    model = Dense(10)(model)
-    model = BatchNormalization()(model)
-    model = Activation('relu')(model)
-    model = Dropout(0.5)(model)
+    model = Dropout(0.3)(model)
 
     out = Dense(1, activation='relu')(model)
 
