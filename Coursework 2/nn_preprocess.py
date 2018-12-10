@@ -36,7 +36,7 @@ def save_data(data, file_path, name):
     """
     np.save(file_path + "{}.npy".format(name),data)
 
-def preprocess(size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, same_class=0.4, different = 0.5, penalty = 10):
+def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, same_class=0.4, different = 0.5, penalty = 10, same_class_penalty=1):
     """
     1. Preprocesses the dataset into three splits: training, validation, test
     2. Performs z normalization on the three different chunks
@@ -52,18 +52,12 @@ def preprocess(size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, sam
         * All the data split into lists of [features, labels]
 
     """
-    all_data = ld(False)
-    training_data = all_data[0]
+    X = normalize(X, axis=1)
 
-    training_labels = training_data[1]
-    training_features = training_data[0]
+    N,F = X.shape
 
-    training_features = normalize(training_features, axis=1)
-
-    training_N,F = training_features.shape
-
-    X = []
-    Y = []
+    X_selected = []
+    Y_selected = []
     values = []
 
     C = int(samples*same_class)
@@ -84,40 +78,45 @@ def preprocess(size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, sam
             random_j = np.random.randint(lower_bound,upper_bound)
             while random_j in selected_j:
                 random_j = np.random.randint(lower_bound,upper_bound)
-            if training_labels[random_i] != training_labels[random_j]:
+            if Y[random_i] != Y[random_j]:
                 D_counter+=1
                 offset+=1
-                X.append(copy.deepcopy(training_features[random_i]))
-                Y.append(copy.deepcopy(training_features[random_j]))
+                X_selected.append(copy.deepcopy(X[random_i]))
+                Y_selected.append(copy.deepcopy(X[random_j]))
                 values.append(penalty)
                 selected_j.append(random_j)
+        selected_j = []
         while C_counter<C:
             low = 0
-            high = training_N
+            high = N
             if random_i-10>lower_bound:
                 low = random_i-10
             if random_i+10<upper_bound:
                 high = random_i+10
-            random_j = np.random.randint(lower_bound, upper_bound)
-            if training_labels[random_i] == training_labels[random_j] and random_i!=random_j:
+            random_j = np.random.randint(lower_bound,upper_bound)
+            while random_j in selected_j:
+                random_j = np.random.randint(lower_bound,upper_bound)
+            if Y[random_i] == Y[random_j] and random_i!=random_j:
                 C_counter+=1
                 offset +=1
-                X.append(copy.deepcopy(training_features[random_i]))
-                Y.append(copy.deepcopy(training_features[random_j]))
-                values.append(1)
+                X_selected.append(copy.deepcopy(X[random_i]))
+                Y_selected.append(copy.deepcopy(X[random_j]))
+                values.append(same_class_penalty)
+                selected_j.append(random_j)
+
 
         while offset < samples:
-            X.append(copy.deepcopy(training_features[random_i]))
-            Y.append(copy.deepcopy(training_features[random_i]))
+            X_selected.append(copy.deepcopy(X[random_i]))
+            Y_selected.append(copy.deepcopy(X[random_i]))
             offset+=1
             values.append(0)
 
     indeces = np.random.choice(size, size=size, replace=False)
-    X = np.array(X)
-    Y = np.array(Y)
+    X_selected = np.array(X_selected)
+    Y_selected = np.array(Y_selected)
     values = np.array(values)
 
-    return [X[indeces], Y[indeces], values[indeces]]
+    return [X_selected[indeces], Y_selected[indeces], values[indeces]]
 
 def load_data(retrain=False):
     """
@@ -134,10 +133,15 @@ def load_data(retrain=False):
         * All the data split into lists of [features, labels]
 
     """
+    all_data = ld(False)
+    training_data = all_data[0]
+
+    Y = training_data[1]
+    X = training_data[0]
     if retrain is True:
         print("Generating new data...")
-        X_train, Y_train, values_train = preprocess(50000, 0, 6368)
-        X_validation, Y_validation, values_validation = preprocess(10000, 6369)
+        X_train, Y_train, values_train = preprocess(X,Y, 40000, 0, 6379,samples = 10, same_class=0.4, different = 0.5, penalty = 10,same_class_penalty=1)
+        X_validation, Y_validation, values_validation = preprocess(X,Y, 7500, 6380,samples = 10, same_class=0.2, different = 0.7, penalty = 10, same_class_penalty=1)
         save_data(X_train,PROCESSED_DIR,"training_nn_X")
         save_data(Y_train,PROCESSED_DIR,"training_nn_Y")
         save_data(values_train,PROCESSED_DIR,"training_nn_values")

@@ -21,7 +21,11 @@ def net():
     model = Dense(100)(model)
     model = BatchNormalization()(model)
     model = Activation('relu')(model)
-    model = Dropout(0.3)(model)
+    model = Dropout(0.5)(model)
+    model = Dense(10)(model)
+    model = BatchNormalization()(model)
+    model = Activation('relu')(model)
+    model = Dropout(0.5)(model)
 
     out = Dense(1, activation='relu')(model)
 
@@ -42,7 +46,7 @@ def train(X_train,Y_train, values_train,X_validation,Y_validation, values_valida
           callbacks=callbacks_list,  validation_data=([X_validation, Y_validation], values_validation))
 
 def load_model():
-    model = residual_network()
+    model = net()
     if os.path.exists(MODEL_FILEPATH):
         model.load_weights(MODEL_FILEPATH)
     else:
@@ -53,5 +57,5 @@ def metric(x,y,model):
     return model.predict([x.reshape(1, -1),y.reshape(1, -1)], verbose=0)
 
 if __name__ == '__main__':
-    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(True)
+    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(False)
     train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
