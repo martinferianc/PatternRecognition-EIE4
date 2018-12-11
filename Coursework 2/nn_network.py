@@ -19,7 +19,7 @@ def net():
     Input_y = Input(shape=SHAPE, name ='input2')
 
     model = concatenate([Input_x, Input_y])
-    model = Dense(50, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
+    model = Dense(400, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
                 activity_regularizer=regularizers.l1(0.0001) )(model)
     model = Dropout(0.3)(model)
     model = BatchNormalization()(model)
@@ -55,7 +55,7 @@ def metric(x,y,model):
     return model.predict([x.reshape(1, -1),y.reshape(1, -1)], verbose=0)
 
 if __name__ == '__main__':
-    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(True)
+    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data()
     model = train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
 
     print(model.predict([X_validation[:10,:], Y_validation[:10,:]]))
