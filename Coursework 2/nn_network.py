@@ -3,6 +3,7 @@ import numpy as np
 from keras.models import Model
 from keras.layers import Input, Dense, concatenate, Activation, Dropout, BatchNormalization, Conv2D, Lambda, add, LeakyReLU, MaxPool2D,GlobalAveragePooling2D
 import os
+from keras import regularizers
 
 H = 64
 W = 32
@@ -18,8 +19,9 @@ def net():
     Input_y = Input(shape=SHAPE, name ='input2')
 
     model = concatenate([Input_x, Input_y])
-    model = Dense(250, activation='relu')(model)
-    model = Dropout(0.5)(model)
+    model = Dense(100, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
+                activity_regularizer=regularizers.l1(0.0001) )(model)
+    model = Dropout(0.3)(model)
     model = BatchNormalization()(model)
 
     out = Dense(1, activation='relu')(model)

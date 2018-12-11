@@ -11,7 +11,7 @@ from sklearn.metrics import precision_score
 
 from kNN_manhattan import analyse_KNN_manhattan
 from kNN_euclidian import analyse_KNN_euclidian
-from kNN_improved_feature_preselection import analyse_KNN_feature_preselection
+from kNN_improved_feature_preselection_NCA import analyse_KNN_feature_preselection
 from kNN_improved_feature_preselection_PCA import analyse_KNN_feature_preselection_PCA
 from kNN_cosine import analyse_KNN_cosine
 from kNN_improved_nn import analyse_KNN_NN

@@ -11,6 +11,8 @@ import copy
 
 from pre_process import load_data as ld
 from sklearn.preprocessing import normalize
+from sklearn.decomposition import KernelPCA
+
 
 
 # We define some constants that we are going to reuse
@@ -138,6 +140,7 @@ def load_data(retrain=False):
 
     Y = training_data[1]
     X = training_data[0]
+
     if retrain is True:
         print("Generating new data...")
         X_train, Y_train, values_train = preprocess(X,Y, 40000, 0, 6379,samples = 10, same_class=0.4, different = 0.5, penalty = 10,same_class_penalty=0)
