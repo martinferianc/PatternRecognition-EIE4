@@ -19,12 +19,13 @@ def net():
     Input_y = Input(shape=SHAPE, name ='input2')
 
     model = concatenate([Input_x, Input_y])
-    model = Dense(100, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
+    model = Dense(50, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
                 activity_regularizer=regularizers.l1(0.0001) )(model)
     model = Dropout(0.3)(model)
     model = BatchNormalization()(model)
 
-    out = Dense(1, activation='relu')(model)
+
+    out = Dense(1, activation='sigmoid')(model)
 
     model = Model(inputs=[Input_x, Input_y], outputs=out)
     return model
@@ -32,7 +33,7 @@ def net():
 def train(X_train,Y_train, values_train,X_validation,Y_validation, values_validation):
     model = net()
     opt = keras.optimizers.nadam()
-    model.compile(optimizer=opt,loss='mean_squared_error',metrics=["mean_squared_error"])
+    model.compile(optimizer=opt,loss='binary_crossentropy',metrics=["binary_crossentropy"])
 
     batch_size = 64
     early_stopping = keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = 5, verbose = 3, mode= 'auto')
@@ -54,7 +55,7 @@ def metric(x,y,model):
     return model.predict([x.reshape(1, -1),y.reshape(1, -1)], verbose=0)
 
 if __name__ == '__main__':
-    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(False)
+    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(True)
     model = train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
 
     print(model.predict([X_validation[:10,:], Y_validation[:10,:]]))
