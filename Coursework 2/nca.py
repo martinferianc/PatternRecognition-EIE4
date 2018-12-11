@@ -1,6 +1,8 @@
 """
 Neighborhood Components Analysis (NCA)
 Ported to Python from https://github.com/vomjom/nca
+
+Taken and adapted from: https://github.com/metric-learn/metric-learn/blob/master/metric_learn/nca.py
 """
 
 from __future__ import absolute_import
@@ -168,9 +170,8 @@ class NCA(BaseMetricLearner):
 
     A = A.reshape(-1, X.shape[1])
     X_embedded = np.dot(X, A.T)  # (n_samples, num_dims)
+
     # Compute softmax distances
-    #K = pairwise_kernels(X_embedded, metric='rbf', n_jobs = -1)
-    #p_ij = 2 - 2*K
     p_ij = pairwise_distances(X_embedded, squared=True)
 
     np.fill_diagonal(p_ij, np.inf)

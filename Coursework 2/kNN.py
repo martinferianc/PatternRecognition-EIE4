@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 
 # Import post process analysing methods
 from sklearn.metrics import precision_score
+from post_process import plot_confusion_matrix
 
+# All the different scripts that we have and the different methods from which we collect the results
 from kNN_manhattan import analyse_KNN_manhattan
 from kNN_euclidian import analyse_KNN_euclidian
 from kNN_improved_RCA_NCA import analyse_KNN_RCA_NCA
@@ -16,8 +18,9 @@ from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
+    methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA"]
     #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
-    methods = ["RCA & NCA"]
+    #methods = ["RCA & NCA"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None

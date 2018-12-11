@@ -4,9 +4,8 @@ from pre_process import load_data, select_features
 import numpy as np
 # Import the kNN library
 from sklearn import neighbors
-
-# Import matplotlib
-
+# For voting and weighting
+from process import weight, vote
 # Import post process analysing methods
 from sklearn.preprocessing import normalize
 import metric_learn
@@ -16,22 +15,6 @@ from nca import NCA
 from tqdm import tqdm
 
 from collections import Counter
-
-def weight(x):
-    return np.exp(-(x** 2)))
-
-def vote(x, weights):
-    label = -1
-    best_score = -float('inf')
-    for i in range(len(x)):
-        score = 0
-        for j in range(len(x)):
-            if x[i] == x[j]:
-                score+=weights[j]
-        if score> best_score:
-            label = x[i]
-            best_score = score
-    return label
 
 
 def analyse_KNN_RCA_NCA(k=10):

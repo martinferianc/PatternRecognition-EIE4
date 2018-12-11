@@ -1,5 +1,7 @@
 # For loading the mat data
 from pre_process import load_data, select_features
+# For voting and weighting
+from process import weight, vote
 # For calculatuons
 import numpy as np
 # Import the kNN library
@@ -8,24 +10,6 @@ from sklearn import neighbors
 from sklearn.preprocessing import normalize
 # For the progress bar
 from tqdm import tqdm
-
-from collections import Counter
-
-def weight(x):
-    return np.exp(-(x** 2)))
-
-def vote(x, weights):
-    label = -1
-    best_score = -float('inf')
-    for i in range(len(x)):
-        score = 0
-        for j in range(len(x)):
-            if x[i] == x[j]:
-                score+=weights[j]
-        if score> best_score:
-            label = x[i]
-            best_score = score
-    return label
 
 
 def analyse_KNN_cosine(k=10):

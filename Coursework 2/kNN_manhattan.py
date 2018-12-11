@@ -4,15 +4,11 @@ from pre_process import load_data, select_features
 import numpy as np
 # Import the kNN library
 from sklearn import neighbors
-
-# Import matplotlib
 # Import post process analysing methods
 from sklearn.metrics import precision_score
-
-#from lda import LDA
-
+# Import the progress bar
 from tqdm import tqdm
-
+# Import the counter for majority voting
 from collections import Counter
 
 
@@ -37,11 +33,6 @@ def analyse_KNN_manhattan(k=10):
     """
 
     all_data = load_data()
-    training_data = all_data[0]
-
-    training_labels = training_data[1]
-    training_features = training_data[0]
-    training_camIds = training_data[2]
 
     query_data = all_data[1]
     gallery_data = all_data[2]
@@ -66,14 +57,19 @@ def analyse_KNN_manhattan(k=10):
 
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
+        # Initialise the classifier
         clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs= -1)
-
         clf.fit(selected_gallery_features, selected_gallery_labels)
 
+        # Predict the neighbors but do not return the distances
         predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=False)
-        predicted_labels = [selected_gallery_labels[l] for l in predicted_neighbors]
-        for i in range(len(predicted_labels[0])):
-            rank = predicted_labels[0][:i+1]
+
+        # Implement only majority voting without weighting on distances
+        predicted_labels = [selected_gallery_labels[l] for l in predicted_neighbors][0]
+
+        # Count the majority votes and add up the scores for respective k
+        for i in range(len(predicted_labels)):
+            rank = predicted_labels[:i+1]
             b = Counter(rank)
             label = b.most_common(1)[0][0]
 

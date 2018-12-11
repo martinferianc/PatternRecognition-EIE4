@@ -1,23 +1,16 @@
 import numpy as np
-
-
-import numpy as np
 # For file manipulation and locating
 import os
-# For plotting
+# For the progress bar
 from tqdm import tqdm
-
+# To create a deep copy of the data
 import copy
-
+# To load the pre-processed and split data
 from pre_process import load_data as ld
+# For normalization of the samples
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import KernelPCA
 
-
-
-# We define some constants that we are going to reuse
-DATA_DIR = "data/"
-RAW_DIR = "data/raw/"
+# We define some constant that we reuse
 PROCESSED_DIR = "data/processed/"
 
 def save_data(data, file_path, name):
@@ -40,18 +33,33 @@ def save_data(data, file_path, name):
 
 def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 10, same_class=0.4, different = 0.5, penalty = 10, same_class_penalty=1):
     """
-    1. Preprocesses the dataset into three splits: training, validation, test
-    2. Performs z normalization on the three different chunks
-    3. Saves the data
+    Preprocessed the dataset
+
+    It creates two lists X,Y
+    It randomly chooses a sample from the input list
+    and then that sample is repeated in total * samples time
+    For each repeated sample it finds a portion of
+    images corresponding to different labels,
+    images corresponding to the same class and
+    a certain portion of identities
+    based on the class membership a penalty is applied or not
 
     Parameters
     ----------
-    None
-
+    X: numpy array of features
+        Numpy array of features from which the pairs are created
+    Y: numpy array
+        Numpy array of corresponding labels
     Returns
     -------
-    all_data: list
-        * All the data split into lists of [features, labels]
+    X_selected: numpy array
+        Numpy array of the first input in the pairs
+
+    Y_selected: numpy array
+        Numpy array of the second input in the pairs
+
+    values: numpy array
+        Artificially determined distances
 
     """
     X = normalize(X, axis=1)
@@ -68,6 +76,7 @@ def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 1
     selected_i = []
 
     for i in tqdm(range(int(size/samples))):
+        # Randomly select a sample but do not repeat it with respect ot previous samples
         random_i = np.random.randint(lower_bound,upper_bound)
         while random_i in selected_i:
             random_i = np.random.randint(lower_bound,upper_bound)
@@ -75,6 +84,8 @@ def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 1
         C_counter = 0
         D_counter = 0
         offset = 0
+
+        # Add samples which correspond to different label than the original image
         selected_j = []
         while D_counter<D:
             random_j = np.random.randint(lower_bound,upper_bound)
@@ -87,6 +98,8 @@ def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 1
                 Y_selected.append(copy.deepcopy(X[random_j]))
                 values.append(penalty)
                 selected_j.append(random_j)
+
+        # Add samples which correspond to the same class
         selected_j = []
         while C_counter<C:
             low = 0
@@ -106,7 +119,7 @@ def preprocess(X, Y, size = 100000,lower_bound=0, upper_bound = 7368,samples = 1
                 values.append(same_class_penalty)
                 selected_j.append(random_j)
 
-
+        # Fill in the rest with identities
         while offset < samples:
             X_selected.append(copy.deepcopy(X[random_i]))
             Y_selected.append(copy.deepcopy(X[random_i]))
