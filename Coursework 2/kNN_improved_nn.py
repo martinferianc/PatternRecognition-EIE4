@@ -16,8 +16,8 @@ from collections import Counter
 from nn_network import load_model
 
 
-def weight(x, sigma=0.1):
-    return np.exp(-(x** 2) / 2*(sigma**2))
+def weight(x):
+    return np.exp(-(x** 2)))
 
 def vote(x, weights):
     label = -1

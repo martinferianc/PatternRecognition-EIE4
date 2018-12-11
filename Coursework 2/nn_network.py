@@ -5,8 +5,6 @@ from keras.layers import Input, Dense, concatenate, Activation, Dropout, BatchNo
 import os
 from keras import regularizers
 
-H = 64
-W = 32
 SHAPE = (2048,)
 
 MODEL_FILEPATH='weights/.weights.best.hdf5'

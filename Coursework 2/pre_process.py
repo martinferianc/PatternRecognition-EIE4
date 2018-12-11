@@ -19,20 +19,43 @@ RAW_DIR = "data/raw/"
 PROCESSED_DIR = "data/processed/"
 N = 14096
 TOTAL_SIZE = 2048
-H = 64
-W = 32
 
 def select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features):
-    selected_gallery_features = []
+    """
+    Preselects features with the respective query
+
+    Parameters
+    ----------
+    gallery_camIds: numpy array
+        Camera IDs for the respective gallery images
+    query_camId: int
+        Id with respect to which we need to filter the dataset
+    gallery_labels: numpy array
+        Labels for the respective gallery images
+    query_label: int
+        label with respect to which we need to filter the dataset
+
+    gallery_features: numpy array
+        The gallery samples that we need to filter for this particular query
+
+    Returns
+    -------
+    selected_gallery_samples: list
+        *   pre-selected gallery samples
+
+    selected_gallery_labels: list
+        *   pre-selected gallery labels corresponding to each sample
+    """
+    selected_gallery_samples = []
     selected_gallery_labels = []
     for j in range(len(gallery_features)):
         if not (gallery_camIds[j]==query_camId and gallery_labels[j]==query_label):
-            selected_gallery_features.append(gallery_features[j])
+            selected_gallery_samples.append(gallery_features[j])
             selected_gallery_labels.append(gallery_labels[j])
 
-    selected_gallery_features = np.array(selected_gallery_features)
+    selected_gallery_samples = np.array(selected_gallery_samples)
     selected_gallery_labels = np.array(selected_gallery_labels)
-    return selected_gallery_features, selected_gallery_labels
+    return selected_gallery_samples, selected_gallery_labels
 
 def load_mat(file_path, label):
     """
@@ -176,7 +199,6 @@ def load_data(z_normalized = True):
     -------
     all_data: list
         * All the data split into lists of [features, labels]
-
     """
     if not os.path.exists(os.path.join(DATA_DIR, "processed/", "training_normalized_features.npy")):
         print("Generating new data...")

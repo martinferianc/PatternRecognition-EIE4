@@ -1,27 +1,23 @@
-# For loading the mat data
-from pre_process import load_data
 # For calculatuons
 import numpy as np
 
 # Import matplotlib
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # Import post process analysing methods
 from sklearn.metrics import precision_score
 
 from kNN_manhattan import analyse_KNN_manhattan
 from kNN_euclidian import analyse_KNN_euclidian
-from kNN_improved_feature_preselection_NCA import analyse_KNN_feature_preselection
-from kNN_improved_feature_preselection_PCA import analyse_KNN_feature_preselection_PCA
-from kNN_cosine import analyse_KNN_cosine
-from kNN_improved_nn import analyse_KNN_NN
-
-
+from kNN_improved_RCA_NCA import analyse_KNN_RCA_NCA
+from kNN_improved_PCA import analyse_KNN_PCA
+from kNN_improved_cosine import analyse_KNN_cosine
+from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
-    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine"]
-    methods = ["Neural Network"]
+    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
+    methods = ["RCA & NCA"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
@@ -29,16 +25,18 @@ if __name__ == '__main__':
             labels,errors, tops, true_labels = analyse_KNN_manhattan()
         elif method == "Euclidian Distance":
             labels,errors, tops, true_labels = analyse_KNN_euclidian()
-        elif method == "Feature pre-selection":
-            labels,errors, tops, true_labels = analyse_KNN_feature_preselection()
-        elif method == "Feature pre-selection PCA":
-            labels,errors, tops, true_labels = analyse_KNN_feature_preselection_PCA()
+        elif method == "Kernel PCA":
+            labels,errors, tops, true_labels = analyse_KNN_PCA()
+        elif method == "RCA & NCA":
+            labels,errors, tops, true_labels = analyse_KNN_RCA_NCA()
         elif method == "Cosine":
             labels,errors, tops, true_labels = analyse_KNN_cosine()
         elif method == "Neural Network":
             labels,errors, tops, true_labels = analyse_KNN_NN()
+
         results[method] = [labels,errors, tops]
         mAPs = []
+
         for i in range(len(errors)):
             predicted_labels = np.array(labels[i])
             true_labels = np.array(true_labels)
@@ -56,7 +54,6 @@ if __name__ == '__main__':
 
         print("k-NN error for {}: {}".format(method,errors))
 
-
         plt.plot(X, mAPs)
         plt.title("k-NN mAP for {}".format(method))
         plt.xlabel("k")
@@ -65,7 +62,6 @@ if __name__ == '__main__':
         plt.close()
 
         print("k-NN mAPs for {}: {}".format(method,mAPs))
-
 
         plt.plot(X, tops)
         plt.title("k-NN error for {}".format(method))
@@ -77,6 +73,13 @@ if __name__ == '__main__':
         print("k-NN tops for {}: {}".format(method,tops))
 
     X = list(range(1,k+1))
+    for method in methods:
+        labels, _, true_labels= results[method]
+        plot_confusion_matrix(true_labels, labels, "results/kNN_CM_{}".format(method),
+                                  normalize=False,
+                                  title=method,
+                                  cmap=plt.cm.Blues)
+
     for method in methods:
         _, errors, _ = results[method]
         plt.plot(X, errors, label=method)
@@ -96,7 +99,6 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig("results/kNN_tops.png")
     plt.close()
-
 
     for method in methods:
         labels, errors, tops = results[method]

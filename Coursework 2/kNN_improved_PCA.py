@@ -9,7 +9,7 @@ from sklearn import neighbors
 
 # Import post process analysing methods
 from sklearn.preprocessing import normalize
-from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
 
 import metric_learn
 
@@ -17,8 +17,8 @@ from tqdm import tqdm
 
 from collections import Counter
 
-def weight(x, sigma=0.1):
-    return np.exp(-(x** 2) / 2*(sigma**2))
+def weight(x):
+    return np.exp(-(x** 2)))
 
 def vote(x, weights):
     label = -1
@@ -34,7 +34,7 @@ def vote(x, weights):
     return label
 
 
-def analyse_KNN_feature_preselection_PCA(k=10):
+def analyse_KNN_PCA(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests
@@ -74,6 +74,7 @@ def analyse_KNN_feature_preselection_PCA(k=10):
     errors = [0]*k
     labels= [None]*k
     tops = [0]*k
+
     query_features = normalize(query_features, axis=1)
     training_features = normalize(training_features, axis=1)
     gallery_features = normalize(gallery_features, axis=1)
@@ -92,8 +93,6 @@ def analyse_KNN_feature_preselection_PCA(k=10):
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
         clf = neighbors.KNeighborsClassifier(k, metric="euclidean")
-        #clf = neighbors.KNeighborsClassifier(k,algorithm='brute',metric=metric,
-        #                                    metric_params={"A": A_s[query_label], "U": U_s[query_label]})
 
         clf.fit(selected_gallery_features, selected_gallery_labels)
         distances, predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=True)
