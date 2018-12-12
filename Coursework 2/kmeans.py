@@ -94,11 +94,8 @@ def analyse_KMeans():
             error+=1
 
     error/=len(query_labels)
-    print("Error for {} method: {}".format(method,error))
-    results[method] = [labels,error]
-
-    return "normal", results, query_labels
-
+    print("Error {}".format(error))
+    return [labels,error]
 
 if __name__ == '__main__':
     print(analyse_KMeans())

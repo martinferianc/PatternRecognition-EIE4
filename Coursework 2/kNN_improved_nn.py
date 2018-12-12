@@ -64,15 +64,12 @@ def analyse_KNN_NN(k=10):
 
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
-
         clf = neighbors.KNeighborsClassifier(k, metric=metric, algorithm="brute")
         clf.fit(selected_gallery_features, selected_gallery_labels)
-        #clf.fit(selected_gallery_features)
 
         distances, predicted_neighbors = clf.kneighbors(query.reshape(1, -1), return_distance=True)
         predicted_labels = np.array([selected_gallery_labels[l] for l in predicted_neighbors]).flatten()
-        print(predicted_labels)
-        print(distances)
+
         weighted_distances = weight(distances).flatten()
 
         for j in range(len(predicted_labels)):
@@ -89,7 +86,6 @@ def analyse_KNN_NN(k=10):
 
             if label!=query_label:
                 errors[j]+=1
-        print(errors[0]/(i+1))
     for i in range(len(errors)):
         errors[i]/=len(query_features)
         tops[i]/=len(query_features)

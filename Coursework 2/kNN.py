@@ -10,7 +10,7 @@ from post_process import plot_confusion_matrix
 
 # All the different scripts that we have and the different methods from which we collect the results
 from kNN_manhattan import analyse_KNN_manhattan
-from kNN_euclidian import analyse_KNN_euclidian
+from kNN_euclidean import analyse_KNN_euclidean
 from kNN_improved_RCA_NCA import analyse_KNN_RCA_NCA
 from kNN_improved_PCA import analyse_KNN_PCA
 from kNN_improved_cosine import analyse_KNN_cosine

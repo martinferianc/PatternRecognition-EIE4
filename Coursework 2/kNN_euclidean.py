@@ -10,7 +10,7 @@ from tqdm import tqdm
 from collections import Counter
 
 
-def analyse_KNN_euclidian(k=10):
+def analyse_KNN_euclidean(k=10):
     """
     Analyse and collect all the different results
     with respect to different kNNs tests

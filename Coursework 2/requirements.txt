@@ -1,0 +1,9 @@
+numpy
+scipy
+sklearn
+matplotlib
+tqdm
+pympler
+keras
+tensorflow
+metric_learn
