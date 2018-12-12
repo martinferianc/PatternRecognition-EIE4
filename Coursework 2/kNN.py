@@ -18,11 +18,12 @@ from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
-    recollect_results = True
+    recollect_results = False
     methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
     results = {}
+    true_labels = None
     for method in methods:
-        labels = errors= tops =  true_labels = None
+        labels = errors= tops = None
         if recollect_results:
             if method == "Manhattan Distance":
                 labels, errors, tops, true_labels = analyse_KNN_manhattan()
@@ -45,7 +46,6 @@ if __name__ == '__main__':
             errors = np.load("results/{}_errors.npy".format(method))
             tops = np.load("results/{}_tops.npy".format(method))
             true_labels = np.load("results/true_labels.npy".format(method))
-
         results[method] = [labels,errors, tops]
         mAPs = []
 
@@ -86,16 +86,16 @@ if __name__ == '__main__':
 
     X = list(range(1,k+1))
     for method in methods:
-        labels, _, true_labels= results[method]
-        plot_confusion_matrix(true_labels, labels, "results/kNN_CM_{}".format(method),
-                                  normalize=False,
+        labels, _, _= results[method]
+        plot_confusion_matrix(true_labels, labels[0,:].T, "results/kNN_CM_{}".format(method),
+                                  normalize=True,
                                   title=method,
                                   cmap=plt.cm.Blues)
 
     for method in methods:
         _, errors, _ = results[method]
         plt.plot(X, errors, label=method)
-    plt.title("k-NN error")
+    plt.title("k-NN Error")
     plt.xlabel("k")
     plt.ylabel("Error")
     plt.legend()
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     for method in methods:
         _, _, tops = results[method]
         plt.plot(X, tops, label=method)
-    plt.title("k-NN error")
+    plt.title("k-NN Rank Error")
     plt.xlabel("k")
     plt.ylabel("Error")
     plt.legend()

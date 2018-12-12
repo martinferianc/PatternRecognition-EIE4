@@ -35,7 +35,6 @@ def plot_confusion_matrix(y_test, y_pred, file_path,
     -------
     An image of confusion matrix
     """
-
     cm = confusion_matrix(y_test, y_pred)
     np.set_printoptions(precision=2)
 
@@ -60,11 +59,10 @@ def plot_confusion_matrix(y_test, y_pred, file_path,
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
     thresh = cm.max() / 2.0
     plt.tight_layout()
+    plt.xticks([], [])
+    plt.yticks([], [])
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.savefig("{}.png".format(file_path))
