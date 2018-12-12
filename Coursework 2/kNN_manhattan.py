@@ -58,7 +58,7 @@ def analyse_KNN_manhattan(k=10):
         selected_gallery_features, selected_gallery_labels = select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features)
 
         # Initialise the classifier
-        clf = neighbors.KNeighborsClassifier(k,p=1, weights="uniform",n_jobs= -1)
+        clf = neighbors.KNeighborsClassifier(k,algorithm="brute",p=1, weights="uniform",n_jobs= -1)
         clf.fit(selected_gallery_features, selected_gallery_labels)
 
         # Predict the neighbors but do not return the distances

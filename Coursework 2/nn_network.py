@@ -1,7 +1,7 @@
 import keras
 import numpy as np
 from keras.models import Model
-from keras.layers import Input, Dense, concatenate, Activation, Dropout, BatchNormalization, Conv2D, Lambda, add, LeakyReLU, MaxPool2D,GlobalAveragePooling2D
+from keras.layers import Input, Dense, Activation, Dropout, BatchNormalization, Lambda
 import os
 from keras import regularizers
 
@@ -11,15 +11,40 @@ SHAPE = (2048,)
 
 MODEL_FILEPATH='weights/.weights.best.hdf5'
 
-
 from nn_preprocess import load_data
 
 
 def abs(tensors):
+    """
+    Compute the absolute value between the tensors
+
+    Parameters
+    ----------
+    tensors: tensors
+        Two input tensors
+
+    Returns
+    -------
+    tensor: tesor
+        Absolute value of a tensor
+    """
     out = K.abs(tensors[0]-tensors[1])
     return out
 
 def net():
+    """
+    Neural Network
+
+    We have a 2 input neural network whose first layer
+    takses the absolute difference between the inputs
+    and then has a single fully connected layer and an output node
+
+    Our optimiser is nADAM and the loss function is defined as binary cross-entropy
+
+    Returns
+    -------
+    model: Keras model
+    """
     Input_x = Input(shape=SHAPE, name='input1')
     Input_y = Input(shape=SHAPE, name ='input2')
 
@@ -36,6 +61,38 @@ def net():
     return model
 
 def train(X_train,Y_train, values_train,X_validation,Y_validation, values_validation):
+    """
+    Neural Network trainer
+
+    The stopping conditions are automatic, if the validation loss
+    does not improve for 5 consecutive epochs terminate the
+    training early
+
+    Parameters
+    ----------
+    X_train: numpy array
+        Input features for training
+
+    Y_train: numpy array
+        Input features for training
+
+    values_train: numpy array
+        Penalty values for training pairs
+
+    X_validation: numpy array
+        Input features for validation
+
+    Y_validation: numpy array
+        Input features for validation
+
+    values_validation: numpy array
+        Penalty values for validation pairs
+
+    Returns
+    -------
+    model: Keras model
+        Trained model
+    """
     model = net()
     print(model.summary())
     opt = keras.optimizers.nadam()
@@ -49,16 +106,24 @@ def train(X_train,Y_train, values_train,X_validation,Y_validation, values_valida
     history = model.fit([X_train,Y_train], values_train, batch_size = batch_size, epochs =50,
           callbacks=callbacks_list,  validation_data=([X_validation, Y_validation], values_validation))
     return model
+
 def load_model():
+    """
+    Neural Network loader
+
+    Loads the trained network
+
+    Returns
+    -------
+    model: Keras model
+        Trained model
+    """
     model = net()
     if os.path.exists(MODEL_FILEPATH):
         model.load_weights(MODEL_FILEPATH)
     else:
         raise Exception("No model was trained, wieghts could not be found!")
     return model
-
-def metric(x,y,model):
-    return model.predict([x.reshape(1, -1),y.reshape(1, -1)], verbose=0)
 
 if __name__ == '__main__':
     X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(False)

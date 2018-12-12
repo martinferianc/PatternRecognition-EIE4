@@ -18,24 +18,33 @@ from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
-    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA"]
-    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
-    methods = ["Neural Network"]
+    recollect_results = True
+    methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
-        if method == "Manhattan Distance":
-            labels,errors, tops, true_labels = analyse_KNN_manhattan()
-        elif method == "Euclidian Distance":
-            labels,errors, tops, true_labels = analyse_KNN_euclidian()
-        elif method == "Kernel PCA":
-            labels,errors, tops, true_labels = analyse_KNN_PCA()
-        elif method == "RCA & NCA":
-            labels,errors, tops, true_labels = analyse_KNN_RCA_NCA()
-        elif method == "Cosine":
-            labels,errors, tops, true_labels = analyse_KNN_cosine()
-        elif method == "Neural Network":
-            labels,errors, tops, true_labels = analyse_KNN_NN()
+        if recollect_results:
+            if method == "Manhattan Distance":
+                labels, errors, tops, true_labels = analyse_KNN_manhattan()
+            elif method == "Euclidian Distance":
+                labels,errors, tops, true_labels = analyse_KNN_euclidian()
+            elif method == "Kernel PCA":
+                labels,errors, tops, true_labels = analyse_KNN_PCA()
+            elif method == "RCA & NCA":
+                labels,errors, tops, true_labels = analyse_KNN_RCA_NCA()
+            elif method == "Cosine":
+                labels,errors, tops, true_labels = analyse_KNN_cosine()
+            elif method == "Neural Network":
+                labels,errors, tops, true_labels = analyse_KNN_NN()
+            np.save("results/{}_labels".format(method),labels)
+            np.save("results/{}_errors".format(method),errors)
+            np.save("results/{}_tops".format(method),tops)
+            np.save("results/true_labels".format(method),true_labels)
+        else:
+            labels = np.load("results/{}_labels.npy".format(method))
+            errors = np.load("results/{}_errors.npy".format(method))
+            tops = np.load("results/{}_tops.npy".format(method))
+            true_labels = np.load("results/true_labels.npy".format(method))
 
         results[method] = [labels,errors, tops]
         mAPs = []
