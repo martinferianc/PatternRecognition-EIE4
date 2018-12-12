@@ -5,6 +5,8 @@ from keras.layers import Input, Dense, concatenate, Activation, Dropout, BatchNo
 import os
 from keras import regularizers
 
+import keras.backend as K
+
 SHAPE = (2048,)
 
 MODEL_FILEPATH='weights/.weights.best.hdf5'
@@ -12,16 +14,21 @@ MODEL_FILEPATH='weights/.weights.best.hdf5'
 
 from nn_preprocess import load_data
 
+
+def abs(tensors):
+    out = K.abs(tensors[0]-tensors[1])
+    return out
+
 def net():
     Input_x = Input(shape=SHAPE, name='input1')
     Input_y = Input(shape=SHAPE, name ='input2')
 
-    model = concatenate([Input_x, Input_y])
-    model = Dense(400, activation='relu',  kernel_regularizer=regularizers.l2(0.00001),
+    model = Lambda(abs, SHAPE)([Input_x, Input_y])
+
+    model = Dense(400, activation='relu',  kernel_regularizer=regularizers.l2(0.001),
                 activity_regularizer=regularizers.l1(0.0001) )(model)
     model = Dropout(0.3)(model)
     model = BatchNormalization()(model)
-
 
     out = Dense(1, activation='sigmoid')(model)
 
@@ -30,6 +37,7 @@ def net():
 
 def train(X_train,Y_train, values_train,X_validation,Y_validation, values_validation):
     model = net()
+    print(model.summary())
     opt = keras.optimizers.nadam()
     model.compile(optimizer=opt,loss='binary_crossentropy',metrics=["binary_crossentropy"])
 
@@ -53,7 +61,7 @@ def metric(x,y,model):
     return model.predict([x.reshape(1, -1),y.reshape(1, -1)], verbose=0)
 
 if __name__ == '__main__':
-    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data()
+    X_train,Y_train, values_train, X_validation, Y_validation, values_validation = load_data(False)
     model = train(X_train,Y_train, values_train, X_validation, Y_validation, values_validation)
 
     print(model.predict([X_validation[:10,:], Y_validation[:10,:]]))

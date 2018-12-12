@@ -18,9 +18,9 @@ from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
-    methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA"]
+    #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA"]
     #methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
-    #methods = ["RCA & NCA"]
+    methods = ["Neural Network"]
     results = {}
     for method in methods:
         labels = errors= tops =  true_labels = None
