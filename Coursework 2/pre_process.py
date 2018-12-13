@@ -12,6 +12,10 @@ import json
 from tqdm import tqdm
 
 import copy
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
 
 # We define some constants that we are going to reuse
 DATA_DIR = "data/"
@@ -19,6 +23,42 @@ RAW_DIR = "data/raw/"
 PROCESSED_DIR = "data/processed/"
 N = 14096
 TOTAL_SIZE = 2048
+
+def plot_correlation_matrix(data, name):
+    """
+    Plot the correlation matrix for the features
+
+    Parameters
+    ----------
+    data: numpy array
+        Feature array
+    name: string
+        File name of the correlation matrix
+
+
+    Returns
+    -------
+    """
+    N,F = data.shape
+    indeces = np.random.choice(N, size=100, replace=False)
+    data = data[indeces,:]
+    sns.set(style="white")
+
+    d = pd.DataFrame(data=data)
+
+    # Compute the correlation matrix
+    corr = d.corr()
+
+    fig, ax = plt.subplots(figsize=(100,100))
+    cax = plt.matshow(corr, interpolation="nearest")
+    plt.colorbar(cax)
+
+    plt.title("Features",fontsize=12,y=1.08)
+    plt.xlabel("Correlation matrix",  fontsize=12)
+    plt.ylabel("Features",fontsize=12)
+    plt.savefig("results/{}.png".format(name))
+
+    plt.close()
 
 def select_features(gallery_camIds, query_camId, gallery_labels, query_label, gallery_features):
     """
@@ -168,6 +208,10 @@ def preprocess():
         training_data = copy.deepcopy(_training_data)
         query_data = copy.deepcopy(_query_data)
         gallery_data = copy.deepcopy(_gallery_data)
+
+        plot_correlation_matrix(training_data,"training_corr_matrix")
+        plot_correlation_matrix(query_data,"query_corr_matrix")
+        plot_correlation_matrix(gallery_data,"gallery_corr_matrix")
 
         training_data_normalized = normalize(_training_data)
         query_data_normalized = normalize(_query_data)

@@ -43,6 +43,7 @@ def analyse_KMeans():
     selected_gallery_labels = []
 
     print("Pre-processing data...")
+
     for i in tqdm(range(len(query_features))):
         query = query_features[i,:]
         query_label = query_labels[i]
@@ -98,4 +99,5 @@ def analyse_KMeans():
     return [labels,error]
 
 if __name__ == '__main__':
-    print(analyse_KMeans())
+
+    analyse_KMeans()
