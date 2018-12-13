@@ -18,7 +18,7 @@ from kNN_improved_NN import analyse_KNN_NN
 
 if __name__ == '__main__':
     k = 10
-    recollect_results = False
+    recollect_results = True 
     methods = ["Manhattan Distance", "Euclidian Distance", "Cosine", "RCA & NCA", "Kernel PCA", "Neural Network"]
     results = {}
     true_labels = None

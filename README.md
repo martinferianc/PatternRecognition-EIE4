@@ -80,8 +80,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 python3 kNN.py
 cd Coursework\ 2/
-python3 Coursework\ 2/kmeans.py
-python3 Coursework\ 2/kNN.py
+python3 kmeans.py
+python3 kNN.py
 ```
 
 and the figures will be found in `results/<Method>/` or printed in your terminal.
