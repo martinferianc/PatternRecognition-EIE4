@@ -39,23 +39,6 @@ def analyse_KMeans():
     error = 0
     labels = []
 
-    selected_gallery_features = []
-    selected_gallery_labels = []
-
-    print("Pre-processing data...")
-
-    for i in tqdm(range(len(query_features))):
-        query = query_features[i,:]
-        query_label = query_labels[i]
-        query_camId = query_camIds[i]
-        j = 0
-        while j < len(gallery_features):
-            if (gallery_camIds[j]==query_camId and gallery_labels[j]==query_label):
-                gallery_features = np.delete(gallery_features,j, axis=0)
-                gallery_labels = np.delete(gallery_labels, j, axis=0)
-                gallery_camIds = np.delete(gallery_camIds, j, axis=0)
-            j+=1
-
     selected_gallery_features = gallery_features
     selected_gallery_labels = gallery_labels
 
