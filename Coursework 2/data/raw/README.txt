@@ -37,3 +37,4 @@ Z. Zhong, L. Zheng, D. Cao, and S. Li, “Re-ranking person re-identification wi
 CUHK03 dataset:
 http://www.ee.cuhk.edu.hk/~xgwang/CUHK_identification.html
 https://github.com/zhunzhong07/person-re-ranking/tree/master/CUHK03-NP
+
